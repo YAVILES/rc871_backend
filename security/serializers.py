@@ -14,12 +14,7 @@ from drf_extra_fields import geo_fields
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from apis.client.serializers import ClientDefaultSerializer, ClientSettingSerializer, ClientSellerSerializer
-from apps.checkout.models import Order
-from apps.client.models import Client
-from apps.core.models import Module, WorkFlow, Menu
-from apps.security.models import User, RecoveryQuestions, UserRecoveryQuestions
-from apps.notification.tasks import send_email
+from security.models import User
 
 
 class RoleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -50,7 +45,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length=255, write_only=True, required=False)
     point = geo_fields.PointField(required=False)
     is_superuser = serializers.BooleanField(required=False, read_only=True)
-    info = ClientSettingSerializer(write_only=True, required=False)
     email = serializers.EmailField()
     email_alternative = serializers.EmailField(required=False)
 
@@ -75,7 +69,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
                 if password:
                     user.set_password(password)
                     user.save(update_fields=['password'])
-                    send_email.delay('Clave Temporal B2B', password, [email, email_alternative])
         except ValidationError as error:
             raise serializers.ValidationError(detail={"error": error.messages})
         return validated_data
@@ -83,7 +76,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'code', 'email', 'email_alternative', 'password', 'name', 'last_name', 'full_name', 'direction',
-                  'telephone', 'phone', 'point', 'is_superuser', 'groups', 'is_client', 'info',)
+                  'telephone', 'phone', 'point', 'is_superuser', 'groups', 'info',)
 
 
 class UserDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -96,7 +89,7 @@ class UserDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'code', 'email', 'password', 'name', 'last_name', 'full_name', 'direction', 'telephone',
-                  'phone', 'point', 'is_superuser', 'groups', 'status', 'status_display', 'is_client', 'info',
+                  'phone', 'point', 'is_superuser', 'groups', 'status', 'status_display', 'info',
                   'created', 'updated',)
 
 
@@ -108,7 +101,7 @@ class UserSimpleSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'code', 'email', 'name', 'last_name', 'full_name', 'direction', 'telephone', 'phone', 'point',
-                  'is_superuser', 'status', 'status_display', 'is_client', 'info', 'created', 'updated',)
+                  'is_superuser', 'status', 'status_display', 'info', 'created', 'updated',)
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -126,76 +119,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'name': self.user.full_name,
             "is_superuser": self.user.is_superuser,
         }
-
-
-class UserAssignQuestionsDefaultSerializer(serializers.ModelSerializer):
-    id = serializers.UUIDField(required=False)
-    answer = serializers.CharField(max_length=255, required=True)
-
-    class Meta:
-        model = UserRecoveryQuestions
-        fields = ('id', 'question', 'answer',)
-
-
-class UserQuestionsDefaultSerializer(serializers.ModelSerializer):
-    questions = serializers.SerializerMethodField()
-
-    def get_questions(self, obj: 'User'):
-        return UserAssignQuestionsDefaultSerializer(
-            UserRecoveryQuestions.objects.filter(user_id=obj.id),
-            many=True
-        ).data
-
-    class Meta:
-        model = User
-        fields = ('questions',)
-
-
-class ChangeRecoveryCodeSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=True)
-
-    def validate(self, attrs):
-        super().validate(attrs)
-        try:
-            user = User.objects.get(
-                Q(email=attrs.get('email')) | Q(email_alternative=attrs.get('email'))
-            )
-        except:
-            raise serializers.ValidationError(detail={"email": _('email invalid')})
-
-        return attrs
-
-    class Meta:
-        model = User
-        fields = ('email',)
-
-
-class ValidSecurityCodeSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=True)
-    code = serializers.CharField(max_length=8, required=True)
-
-    def validate(self, attrs):
-        super().validate(attrs)
-        code = attrs.get('code')
-        email = attrs.get('email')
-        try:
-            user = User.objects.get(Q(email=email) | Q(email_alternative=email))
-        except:
-            raise serializers.ValidationError(detail={"email": _('email invalid')})
-        try:
-            if code == user.security_code:
-                user.is_verified_security_code = True
-                user.save(update_fields=['is_verified_security_code'])
-            else:
-                raise serializers.ValidationError(detail={"code": _('code invalid')})
-        except:
-            raise serializers.ValidationError(detail={"code": _('code invalid')})
-
-        return attrs
-
-    class Meta:
-        model = User
-        fields = ('email', 'code',)
 
 
 class ChangePasswordSerializer(serializers.Serializer):
@@ -231,11 +154,3 @@ class ChangePasswordSerializer(serializers.Serializer):
 
     class Meta:
         fields = ('email', 'password',)
-
-
-class StartDayClientSerializer(serializers.Serializer):
-    planned_clients = ClientSellerSerializer(read_only=True)
-    unplanned_clients = ClientSellerSerializer(read_only=True)
-
-    class Meta:
-        fields = ('planned_clients', 'unplanned_clients',)

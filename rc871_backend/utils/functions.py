@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import QuerySet
 from fcm_django.models import FCMDevice
 
-from btpb2b import settings
+from rc871_backend import settings
 
 
 class PythonObjectEncoder(JSONEncoder):

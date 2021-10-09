@@ -31,17 +31,6 @@ class ModelBase(models.Model):
         abstract = True
 
 
-class TaxRegion(ModelBase):
-    description = models.CharField(max_length=50, verbose_name=_('description'))
-
-    def __str__(self):
-        return self.description
-
-    class Meta:
-        verbose_name = _('tax region')
-        verbose_name_plural = _('tax regions')
-
-
 class Location(ModelBase):
     description = models.CharField(max_length=100, verbose_name=_('description'))
     last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
@@ -52,4 +41,4 @@ class Location(ModelBase):
     class Meta:
         verbose_name = _('location')
         verbose_name_plural = _('locations')
-        ordering = ['description', ]
+        ordering = ['description']

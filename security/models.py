@@ -1,56 +1,14 @@
 import uuid
 
-from constance.backends.database.models import Constance
-from django.conf import settings
-
 from auditlog.registry import auditlog
 from django.contrib.gis.db import models as geo_models
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin, Group, Permission
 from django.db import models
-from django.db.models.signals import post_save
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
-# Create your models here.
-from apps.client.models import Client
-from apps.core.models import ModelBase, Product, Menu
-from apps.inventory.models import Warehouse
-
-
-class RecoveryQuestions(ModelBase):
-    INACTIVE = 0
-    ACTIVE = 1
-    question = models.CharField(max_length=255, verbose_name=_('question'), unique=True)
-    status = models.SmallIntegerField(choices=(
-        (ACTIVE, _('activo')),
-        (INACTIVE, _('inactivo'))
-    ), default=ACTIVE, verbose_name=_('status'))
-
-
-class UserRecoveryQuestions(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('security.User', verbose_name=_(
-        'user'), on_delete=models.CASCADE)
-    question = models.ForeignKey(RecoveryQuestions, verbose_name=_(
-        'question'), on_delete=models.PROTECT)
-    answer = models.CharField(max_length=255, verbose_name=_('answer'))
-
-
-class WarehouseUser(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    warehouse = models.ForeignKey(Warehouse, verbose_name=_(
-        'warehouse'), on_delete=models.PROTECT)
-    user = models.ForeignKey('security.User', verbose_name=_(
-        'user'), on_delete=models.PROTECT)
-    last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
-
-
-class ClientUser(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    client = models.ForeignKey(Client, verbose_name=_('client'), on_delete=models.PROTECT)
-    user = models.ForeignKey('security.User', verbose_name=_('user'), on_delete=models.PROTECT)
-    last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
+from core.models import ModelBase
 
 
 class UserManager(BaseUserManager):
@@ -63,24 +21,6 @@ class UserManager(BaseUserManager):
             password='SYSTEM',
             status=User.INACTIVE
         )
-        return user
-
-    def admin(self, database='default'):
-        user, created = User.objects.using(database).get_or_create(
-            email='admin@admin.com',
-            name='Admin',
-            last_name='User',
-            # Como es plain text deberia ser suficiente para que el usuario no haga login
-            status=User.ACTIVE
-        )
-
-        group, _ = Group.objects.using(database).get_or_create(name="Admin")
-        group.permissions.set(
-            Menu.objects.filter(permissions__isnull=False).values_list('permissions__id', flat=True)
-        )
-        user.groups.set([group])
-        user.set_password('admin1234567')
-        user.save(using=database)
         return user
 
     def web(self):
@@ -154,7 +94,8 @@ class User(AbstractBaseUser, PermissionsMixin, ModelBase):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'name', 'last_name', 'phone']
     last_login = models.DateTimeField(blank=True, null=True, verbose_name=_('last login'))
-    last_password_change = models.DateTimeField(blank=True, null=True, auto_now_add=True, verbose_name=_('last password change'))
+    last_password_change = models.DateTimeField(blank=True, null=True, auto_now_add=True,
+                                                verbose_name=_('last password change'))
     jwt_id = models.UUIDField(default=uuid.uuid4, blank=True, null=True)
     info = models.JSONField(default=dict)
     last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
@@ -183,6 +124,7 @@ class User(AbstractBaseUser, PermissionsMixin, ModelBase):
     """
         Deletes an user
     """
+
     def delete(self, using=None, keep_parents=False):
         models.signals.pre_delete.send(sender=self.__class__,
                                        instance=self,
