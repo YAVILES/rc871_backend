@@ -55,7 +55,7 @@ class UserViewSet(ModelViewSet):
         # if self.action == 'retrieve':
         #    return queryset.filter(pk=self.request.user.pk)
 
-        return queryset.filter(is_superuser=False)
+        return queryset
         # Can't list users
         # return queryset.none()
 
