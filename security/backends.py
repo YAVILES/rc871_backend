@@ -26,7 +26,7 @@ class CustomAuthenticationBackend(ModelBackend):
             return
         else:
             try:
-                user = User.objects.get(Q(email=str(username).lower()) or Q(username=username))
+                user = User.objects.get(Q(email=str(username).lower()) | Q(username=username))
                 # user = UserModel._default_manager.get_by_natural_key(str(username).lower())
             except UserModel.DoesNotExist:
                 raise exceptions.AuthenticationFailed(
