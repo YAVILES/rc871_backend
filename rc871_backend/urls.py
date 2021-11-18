@@ -22,7 +22,7 @@ from drf_yasg2.views import get_schema_view
 from drf_yasg2 import openapi
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
-from security.views import CustomTokenObtainPairView
+from apps.security.views import CustomTokenObtainPairView
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -41,8 +41,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     #url(r'^otheradmin/', othersite.urls),
 
-    path('api/core/', include('core.urls')),
-    path('api/security/', include('security.urls')),
+    path('api/core/', include('apps.core.urls')),
+    path('api/security/', include('apps.security.urls')),
 
     # Tokens
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),

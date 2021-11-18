@@ -6,7 +6,7 @@ from jwt import decode as jwt_decode
 from django.conf import settings
 from urllib.parse import parse_qs
 
-from security.models import User
+from apps.security.models import User
 
 from channels.db import database_sync_to_async
 

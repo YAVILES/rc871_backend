@@ -1,20 +1,16 @@
 # coding=utf-8
-from constance.admin import config
-from constance.backends.database.models import Constance
 from django.contrib.auth import password_validation
-from django.contrib.auth.models import Group, Permission
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.contrib.auth.models import Group
+from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q, Value
-from django.db.models.functions import Concat
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django_restql.mixins import DynamicFieldsMixin
 from drf_extra_fields import geo_fields
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from security.models import User
+from apps.security.models import User
 
 
 class RoleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):

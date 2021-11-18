@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from import_export.resources import ModelResource
 from import_export.admin import ImportExportModelAdmin
 
-from security.models import User
+from apps.security.models import User
 
 
 class UserResource(ModelResource):

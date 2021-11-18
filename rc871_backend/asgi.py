@@ -19,7 +19,7 @@ django_asgi_app = get_asgi_application()
 from rc871_backend.channelsmiddleware import TokenAuthMiddleware
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
-from chat.routing import websocket_urlpatterns
+from apps.chat.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter(
     {

@@ -8,7 +8,7 @@ from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
-from core.models import ModelBase
+from apps.core.models import ModelBase
 
 
 class UserManager(BaseUserManager):

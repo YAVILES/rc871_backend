@@ -3,7 +3,7 @@ from django.db.models.query_utils import Q
 from rest_framework import exceptions
 from django.contrib.auth import get_user_model
 
-from security.models import User
+from apps.security.models import User
 
 UserModel = get_user_model()
 

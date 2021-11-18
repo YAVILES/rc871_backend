@@ -1,7 +1,7 @@
 from django.db import models
 import uuid
 from django.utils.translation import ugettext_lazy as _
-from core.models import ModelBase
+from apps.core.models import ModelBase
 
 
 class Member(models.Model):

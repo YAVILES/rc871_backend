@@ -85,9 +85,9 @@ INSTALLED_APPS = [
     #  'debug_toolbar',
 
     # RC871
-    'core.apps.CoreConfig',
-    'security.apps.SecurityConfig',
-    'chat.apps.ChatConfig',
+    'apps.core.apps.CoreConfig',
+    'apps.security.apps.SecurityConfig',
+    'apps.chat.apps.ChatConfig',
 ]
 
 MIDDLEWARE = [

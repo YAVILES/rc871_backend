@@ -4,6 +4,7 @@ from django.contrib.auth.models import Group
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -30,6 +31,8 @@ class UserViewSet(ModelViewSet):
     filterset_class = UserFilter
     serializer_class = UserDefaultSerializer
     search_fields = ['username', 'name', 'email', 'code']
+    permission_classes = (AllowAny,)
+    authentication_classes = []
 
     def paginate_queryset(self, queryset):
         """
