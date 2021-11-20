@@ -37,7 +37,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     groups = serializers.PrimaryKeyRelatedField(
         queryset=Group.objects.all(), many=True, required=False, write_only=True
     )
-    code = serializers.CharField(max_length=255, required=False)
+    username = serializers.CharField(max_length=255, required=False)
     password = serializers.CharField(max_length=255, write_only=True, required=False)
     point = geo_fields.PointField(required=False)
     is_superuser = serializers.BooleanField(required=False, read_only=True)
@@ -71,8 +71,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'code', 'email', 'email_alternative', 'password', 'name', 'last_name', 'full_name', 'direction',
-                  'telephone', 'phone', 'point', 'is_superuser', 'groups', 'info',)
+        fields = ('id', 'username', 'email', 'email_alternative', 'password', 'name', 'last_name', 'full_name',
+                  'direction', 'telephone', 'phone', 'point', 'is_superuser', 'groups', 'info',)
 
 
 class UserDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -84,7 +84,7 @@ class UserDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'code', 'email', 'password', 'name', 'last_name', 'full_name', 'direction', 'telephone',
+        fields = ('id', 'username', 'email', 'password', 'name', 'last_name', 'full_name', 'direction', 'telephone',
                   'phone', 'point', 'is_superuser', 'groups', 'status', 'status_display', 'info',
                   'created', 'updated',)
 
@@ -96,7 +96,7 @@ class UserSimpleSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'code', 'email', 'name', 'last_name', 'full_name', 'direction', 'telephone', 'phone', 'point',
+        fields = ('id', 'username', 'email', 'name', 'last_name', 'full_name', 'direction', 'telephone', 'phone', 'point',
                   'is_superuser', 'status', 'status_display', 'info', 'created', 'updated',)
 
 

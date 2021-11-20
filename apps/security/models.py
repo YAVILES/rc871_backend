@@ -89,7 +89,7 @@ class User(AbstractBaseUser, PermissionsMixin, ModelBase):
     status = models.SmallIntegerField(choices=STATUS, default=ACTIVE, verbose_name=_('status'))
     is_staff = models.BooleanField(verbose_name=_('is staff'), default=False)
     is_superuser = models.BooleanField(verbose_name=_('is superuser'), default=False)
-    is_active = models.BooleanField(verbose_name=_('is superuser'), default=True)
+    is_active = models.BooleanField(verbose_name=_('is active'), default=True)
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'name', 'last_name', 'phone']
     last_login = models.DateTimeField(blank=True, null=True, verbose_name=_('last login'))

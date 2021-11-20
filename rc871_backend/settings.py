@@ -184,7 +184,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")  # '/home/admin/domains/clientes-gr
 
 
 AUTH_USER_MODEL = 'security.User'
-AUTHENTICATION_BACKENDS = ['security.backends.CustomAuthenticationBackend', ]
+AUTHENTICATION_BACKENDS = ['apps.security.backends.CustomAuthenticationBackend', ]
 
 WEB_URL = env('WEB_URL')
 

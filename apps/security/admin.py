@@ -40,8 +40,8 @@ class UserResourceAdmin(ImportExportModelAdmin):
 
 class CustomUserAdmin(UserAdmin, ImportExportModelAdmin):
     form = CustomUserChangeForm
-    list_display = ['email', 'name', 'last_name', 'is_staff', 'is_superuser', 'status']
-    list_filter = ['email', 'status', 'is_staff', 'is_superuser']
+    list_display = ['username', 'email', 'name', 'last_name', 'is_staff', 'is_superuser', 'status']
+    list_filter = ['username', 'email', 'status', 'is_staff', 'is_superuser']
     filter_horizontal = ['groups']
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
