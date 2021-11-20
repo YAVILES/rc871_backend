@@ -2,7 +2,7 @@ import tablib
 from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth.models import Group
 from rest_framework import status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, authentication_classes
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -10,7 +10,6 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
 from tablib import Dataset
 from django_filters import rest_framework as filters
-
 from rc871_backend.utils.functions import format_headers_import
 from .admin import UserResource, RoleResource
 from .models import User
@@ -32,7 +31,6 @@ class UserViewSet(ModelViewSet):
     serializer_class = UserDefaultSerializer
     search_fields = ['username', 'name', 'email', 'code']
     permission_classes = (AllowAny,)
-    authentication_classes = []
 
     def paginate_queryset(self, queryset):
         """
@@ -66,6 +64,14 @@ class UserViewSet(ModelViewSet):
         if self.action in ['create', 'update']:
             return UserCreateSerializer
         return UserDefaultSerializer
+
+    @authentication_classes([])
+    def create(self, request, *args, **kwargs):
+        serializer = UserCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        # headers = self.get_success_headers(serializer.data)
+        return Response({}, status=status.HTTP_201_CREATED)
 
     @action(methods=['GET', ], detail=False)
     def current(self, request):
