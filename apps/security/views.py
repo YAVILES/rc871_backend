@@ -1,27 +1,26 @@
 import tablib
 from django_filters.rest_framework import DjangoFilterBackend
-from django.contrib.auth.models import Group
 from rest_framework import status
 from rest_framework.decorators import action, authentication_classes
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
 from tablib import Dataset
 from django_filters import rest_framework as filters
 from rc871_backend.utils.functions import format_headers_import
 from .admin import UserResource, RoleResource
-from .models import User
+from .models import User, Workflow, Role
 from .serializers import UserDefaultSerializer, CustomTokenObtainPairSerializer, RoleDefaultSerializer, \
-    UserCreateSerializer
+    UserCreateSerializer, WorkflowDefaultSerializer
 
 
 class UserFilter(filters.FilterSet):
 
     class Meta:
         model = User
-        fields = ['username', 'status', 'name', 'email', 'code']
+        fields = ['username', 'status', 'name', 'email', 'email_alternative', 'code', 'is_staff']
 
 
 class UserViewSet(ModelViewSet):
@@ -29,7 +28,7 @@ class UserViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = UserFilter
     serializer_class = UserDefaultSerializer
-    search_fields = ['username', 'name', 'email', 'code']
+    search_fields = ['username', 'name', 'email', 'email_alternative', 'code', 'is_staff']
     permission_classes = (AllowAny,)
 
     def paginate_queryset(self, queryset):
@@ -170,7 +169,7 @@ class UserViewSet(ModelViewSet):
 
 
 class RoleViewSet(ModelViewSet):
-    queryset = Group.objects.all()
+    queryset = Role.objects.all()
     serializer_class = RoleDefaultSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name']
@@ -244,22 +243,21 @@ class RoleViewSet(ModelViewSet):
         except ValueError as e:
             return Response(e, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(methods=['GET'], detail=False)
-    def field_options(self, request):
-        field = self.request.query_params.get('field', None)
-        if field:
-            try:
-                choices = []
-                for c in Group._meta.get_field(field).choices:
-                    choices.append({
-                        "value": c[0],
-                        "description": c[1]
-                    })
-                return Response(choices, status=status.HTTP_200_OK)
-            except ValueError as e:
-                return Response(e, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({"error": "the field parameter is mandatory"}, status=status.HTTP_400_BAD_REQUEST)
+
+class WorkflowViewSet(ReadOnlyModelViewSet):
+    queryset = Workflow.objects.all()
+    serializer_class = WorkflowDefaultSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['title', 'url']
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):

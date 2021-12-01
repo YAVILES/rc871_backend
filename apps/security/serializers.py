@@ -1,6 +1,5 @@
 # coding=utf-8
 from django.contrib.auth import password_validation
-from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
@@ -10,18 +9,29 @@ from drf_extra_fields import geo_fields
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from apps.security.models import User
+from apps.security.models import User, Workflow, Role
+
+
+class WorkflowDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    class Meta:
+        model = Workflow
+        fields = serializers.ALL_FIELDS
 
 
 class RoleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    workflows = serializers.PrimaryKeyRelatedField(
+        queryset=Workflow.objects.all(), many=True, required=False, write_only=True
+    )
+    workflows_display = WorkflowDefaultSerializer(many=True, read_only=True, source="workflows")
+
     class Meta:
-        model = Group
+        model = Role
         fields = serializers.ALL_FIELDS
 
 
 class RoleUserSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
-        model = Group
+        model = Role
         fields = ('id', 'name',)
 
 
@@ -29,20 +39,22 @@ class RoleFullSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     name = serializers.CharField(max_length=255, required=False)
 
     class Meta:
-        model = Group
+        model = Role
         fields = serializers.ALL_FIELDS
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
-    groups = serializers.PrimaryKeyRelatedField(
-        queryset=Group.objects.all(), many=True, required=False, write_only=True
+    roles = serializers.PrimaryKeyRelatedField(
+        queryset=Role.objects.all(), many=True, required=False, write_only=True
     )
     username = serializers.CharField(max_length=255, required=False)
     password = serializers.CharField(max_length=255, write_only=True, required=False)
     point = geo_fields.PointField(required=False)
-    is_superuser = serializers.BooleanField(required=False, read_only=True)
+    is_superuser = serializers.BooleanField(required=False)
+    is_staff = serializers.BooleanField(required=False)
     email = serializers.EmailField()
     email_alternative = serializers.EmailField(required=False)
+    photo = serializers.ImageField(required=False)
 
     def validate(self, attrs):
         password = attrs.get('password')
@@ -71,12 +83,12 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'email_alternative', 'password', 'name', 'last_name', 'full_name',
-                  'direction', 'telephone', 'phone', 'point', 'is_superuser', 'groups', 'info',)
+        fields = ('id', 'username', 'email', 'email_alternative', 'photo', 'password', 'name', 'last_name', 'full_name',
+                  'direction', 'telephone', 'phone', 'point', 'is_superuser', 'roles', 'info', 'is_staff',)
 
 
 class UserDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    groups = RoleUserSerializer(many=True, read_only=True)
+    roles_display = RoleUserSerializer(many=True, read_only=True, source="roles")
     password = serializers.CharField(max_length=255, write_only=True, required=False)
     point = geo_fields.PointField(required=False)
     is_superuser = serializers.BooleanField(required=False, read_only=True)
@@ -84,8 +96,9 @@ class UserDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password', 'name', 'last_name', 'full_name', 'direction', 'telephone',
-                  'phone', 'point', 'is_superuser', 'groups', 'status', 'status_display', 'info', 'created', 'updated',)
+        fields = ('id', 'username', 'email', 'email_alternative', 'password', 'name', 'last_name', 'full_name',
+                  'direction', 'telephone', 'phone', 'point', 'is_superuser', 'roles', 'roles_display', 'status',
+                  'status_display', 'info', 'created', 'updated', 'is_active', 'photo',)
 
 
 class UserSimpleSerializer(DynamicFieldsMixin, serializers.ModelSerializer):

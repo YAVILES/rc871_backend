@@ -3,7 +3,6 @@ import uuid
 from auditlog.registry import auditlog
 from django.contrib.gis.db import models as geo_models
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.models import PermissionsMixin, Group, Permission
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
@@ -63,7 +62,33 @@ class UserManager(BaseUserManager):
         return self._create_user(email, name, last_name, password, database, **extra_fields)
 
 
-class User(AbstractBaseUser, PermissionsMixin, ModelBase):
+class Workflow(ModelBase):
+    title = models.CharField(max_length=100, verbose_name=_('title'))
+    url = models.CharField(max_length=255, verbose_name=_('url'))
+
+    class Meta:
+        verbose_name = _('workflow')
+        verbose_name_plural = _('work flows')
+
+
+class Role(models.Model):
+    name = models.CharField(_('name'), max_length=150, unique=True)
+    workflows = models.ManyToManyField(
+        Workflow,
+        verbose_name=_('work flows'),
+        blank=True,
+    )
+    is_active = models.BooleanField(verbose_name=_('is active'), default=True)
+
+    class Meta:
+        verbose_name = _('role')
+        verbose_name_plural = _('roles')
+
+    def __str__(self):
+        return self.name
+
+
+class User(AbstractBaseUser, ModelBase):
     INACTIVE = 0
     ACTIVE = 1
     SUSPEND = 2
@@ -86,9 +111,35 @@ class User(AbstractBaseUser, PermissionsMixin, ModelBase):
     telephone = models.CharField(null=True, max_length=20, verbose_name=_('telephone'))
     point = geo_models.PointField(verbose_name=_('point'), null=True)
     photo = models.ImageField(upload_to='photos/', null=True)
+    is_superuser = models.BooleanField(
+        _('superuser status'),
+        default=False,
+        help_text=_(
+            'Designates that this user has all permissions without '
+            'explicitly assigning them.'
+        ),
+    )
+    roles = models.ManyToManyField(
+        Role,
+        verbose_name=_('roles'),
+        blank=True,
+        help_text=_(
+            'The roles this user belongs to. A user will get all workflows '
+            'granted to each of their roles.'
+        ),
+        related_name="user_set",
+        related_query_name="user",
+    )
+    user_work_flows = models.ManyToManyField(
+        Workflow,
+        verbose_name=_('user work flows'),
+        blank=True,
+        help_text=_('Specific work flows for this user.'),
+        related_name="user_set",
+        related_query_name="user",
+    )
     status = models.SmallIntegerField(choices=STATUS, default=ACTIVE, verbose_name=_('status'))
     is_staff = models.BooleanField(verbose_name=_('is staff'), default=False)
-    is_superuser = models.BooleanField(verbose_name=_('is superuser'), default=False)
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'name', 'last_name', 'phone']
@@ -144,5 +195,5 @@ class User(AbstractBaseUser, PermissionsMixin, ModelBase):
     AuditLog
 """
 auditlog.register(User, exclude_fields=['created', 'updated'])
-auditlog.register(Group, exclude_fields=['created', 'updated'])
-auditlog.register(Permission, exclude_fields=['created', 'updated'])
+auditlog.register(Role, exclude_fields=['created', 'updated'])
+auditlog.register(Workflow, exclude_fields=['created', 'updated'])
