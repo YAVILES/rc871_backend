@@ -124,8 +124,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'info': None,
             'danger': None,
             'warn': [],
-            'name': self.user.full_name,
-            "is_superuser": self.user.is_superuser,
+            'user': UserSimpleSerializer(self.user).data
         }
 
 

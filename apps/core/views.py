@@ -11,7 +11,7 @@ from django_filters import rest_framework as filters
 
 from apps.core.admin import BannerResource
 from apps.core.models import Banner
-from apps.core.serializers import BannerDefaultSerializer
+from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer
 from rc871_backend.utils.functions import format_headers_import
 
 
@@ -30,6 +30,11 @@ class BannerViewSet(ModelViewSet):
     search_fields = ['title', 'subtitle', 'content', 'url', 'sequence_order', 'is_active']
     permission_classes = (AllowAny,)
     authentication_classes = []
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update']:
+            return BannerEditSerializer
+        return self.serializer_class
 
     def paginate_queryset(self, queryset):
         """

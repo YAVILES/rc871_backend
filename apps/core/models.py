@@ -1,4 +1,7 @@
 import uuid
+from os import remove
+from os import path
+
 from django.db import models, IntegrityError
 from django.utils.translation import ugettext_lazy as _
 
@@ -44,7 +47,7 @@ class Location(ModelBase):
         ordering = ['description']
 
 
-def banner_image_path(product: 'Product', file_name):
+def banner_image_path(product: 'Banner', file_name):
     return 'img/banner/{0}/{1}'.format(product.title, file_name)
 
 
@@ -56,6 +59,19 @@ class Banner(ModelBase):
     url = models.CharField(max_length=255, verbose_name=_('url'))
     sequence_order = models.IntegerField(verbose_name='sequence order', default=1)
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
+
+    def delete(self, using=None, keep_parents=False):
+        models.signals.pre_delete.send(sender=self.__class__,
+                                       instance=self,
+                                       using=using)
+        image_path = None
+        if self.image and hasattr(self.image, 'url'):
+            image_path = self.image.path
+        if image_path and path.exists(image_path):
+            remove(image_path)
+        models.signals.post_delete.send(sender=self.__class__,
+                                        instance=self,
+                                        using=using)
 
     class Meta:
         verbose_name = _('banner')
