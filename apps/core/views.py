@@ -1,6 +1,7 @@
 import tablib
+from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status
+from rest_framework import status, serializers, mixins
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
@@ -8,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from tablib import Dataset
 from django_filters import rest_framework as filters
+from django.utils.translation import ugettext_lazy as _
 
 from apps.core.admin import BannerResource
 from apps.core.models import Banner, BranchOffice
@@ -44,6 +46,20 @@ class BannerViewSet(ModelViewSet):
         if self.paginator is None or not_paginator:
             return None
         return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+    @action(detail=False, methods=['DELETE', ])
+    @transaction.atomic()
+    def remove_multiple(self, request):
+        ids = request.data.get('ids', None)
+        try:
+            if ids:
+                Banner.objects.filter(id__in=ids).delete()
+            else:
+                raise serializers.ValidationError(
+                    detail={'error': _("Debe seleccionar al menos un banner")})
+        except ValueError as e:
+            raise serializers.ValidationError(detail={'error': _(e.__str__())})
+        return Response(status=status.HTTP_200_OK)
 
     @action(methods=['GET'], detail=False)
     def export(self, request):
