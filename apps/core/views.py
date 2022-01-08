@@ -10,8 +10,8 @@ from tablib import Dataset
 from django_filters import rest_framework as filters
 
 from apps.core.admin import BannerResource
-from apps.core.models import Banner
-from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer
+from apps.core.models import Banner, BranchOffice
+from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer
 from rc871_backend.utils.functions import format_headers_import
 
 
@@ -44,25 +44,6 @@ class BannerViewSet(ModelViewSet):
         if self.paginator is None or not_paginator:
             return None
         return self.paginator.paginate_queryset(queryset, self.request, view=self)
-
-    def get_queryset(self):
-        queryset = self.queryset
-
-        # Superuser can see everything
-        if self.request.user.is_superuser and self.action == 'retrieve':
-            return queryset
-
-        # Staff can see everything except superusers
-        if self.request.user.is_staff:
-            return queryset.filter(is_superuser=False)
-
-        # Rest of users can see themselves
-        # if self.action == 'retrieve':
-        #    return queryset.filter(pk=self.request.user.pk)
-
-        return queryset
-        # Can't list users
-        # return queryset.none()
 
     @action(methods=['GET'], detail=False)
     def export(self, request):
@@ -123,3 +104,28 @@ class BannerViewSet(ModelViewSet):
                 }, status=status.HTTP_200_OK)
         except ValueError as e:
             return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BranchOfficeFilter(filters.FilterSet):
+
+    class Meta:
+        model = BranchOffice
+        fields = ['number', 'code', 'description', 'is_active']
+
+
+class BranchOfficeViewSet(ModelViewSet):
+    queryset = BranchOffice.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = BranchOfficeFilter
+    serializer_class = BranchOfficeDefaultSerializer
+    search_fields = ['number', 'code', 'description', 'is_active']
+    permission_classes = (AllowAny,)
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)

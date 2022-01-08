@@ -15,8 +15,8 @@ class CustomAuthenticationBackend(ModelBackend):
         Reject users with is_active=False. Custom user models that don't have
         that attribute are allowed.
         """
-        status = getattr(user, 'status', None)
-        return status == User.ACTIVE
+        is_active = getattr(user, 'is_active', None)
+        return is_active
 
     def authenticate(self, request, password=None, **kwargs):
         username = kwargs.get(UserModel.USERNAME_FIELD)

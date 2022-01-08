@@ -20,7 +20,7 @@ class UserFilter(filters.FilterSet):
 
     class Meta:
         model = User
-        fields = ['username', 'status', 'name', 'email', 'email_alternative', 'code', 'is_staff']
+        fields = ['username', 'is_active', 'name', 'email', 'email_alternative', 'code', 'is_staff']
 
 
 class UserViewSet(ModelViewSet):
@@ -65,12 +65,13 @@ class UserViewSet(ModelViewSet):
         return UserDefaultSerializer
 
     @authentication_classes([])
-    def create(self, request, *args, **kwargs):
+    @action(methods=['POST', ], detail=False)
+    def create_client(self, request, *args, **kwargs):
         serializer = UserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         # headers = self.get_success_headers(serializer.data)
-        return Response({}, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(methods=['GET', ], detail=False)
     def current(self, request):

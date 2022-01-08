@@ -18,7 +18,7 @@ class UserManager(BaseUserManager):
             last_name='SYSTEM',
             # Como es plain text deberia ser suficiente para que el usuario no haga login
             password='SYSTEM',
-            status=User.INACTIVE
+            is_active=False
         )
         return user
 
@@ -29,7 +29,7 @@ class UserManager(BaseUserManager):
             last_name='WEB',
             # Como es plain text deberia ser suficiente para que el usuario no haga login
             password='WEB',
-            status=User.INACTIVE
+            is_active=False
         )
         return user
 
@@ -89,19 +89,10 @@ class Role(models.Model):
 
 
 class User(AbstractBaseUser, ModelBase):
-    INACTIVE = 0
-    ACTIVE = 1
-    SUSPEND = 2
-    STATUS = (
-        (ACTIVE, _('activo')),
-        (INACTIVE, _('inactivo')),
-        (SUSPEND, _('suspendo')),
-    )
-
     code = models.CharField(max_length=255, verbose_name=_('code'), null=True, unique=True,
                             help_text="Código que se usaría para las sincronización con apps externas")
     username = models.CharField(max_length=50, verbose_name=_('username'), null=True, unique=True)
-    email = models.EmailField(verbose_name=_('email'), unique=True)
+    email = models.EmailField(verbose_name=_('email'))
     email_alternative = models.EmailField(null=True, verbose_name=_('email_alternative'))
     name = models.CharField(max_length=255, verbose_name=_('name'), null=True)
     last_name = models.CharField(max_length=50, verbose_name=_('last name'))
@@ -112,7 +103,7 @@ class User(AbstractBaseUser, ModelBase):
     point = geo_models.PointField(verbose_name=_('point'), null=True)
     photo = models.ImageField(upload_to='photos/', null=True)
     is_superuser = models.BooleanField(
-        _('superuser status'),
+        _('is superuser'),
         default=False,
         help_text=_(
             'Designates that this user has all permissions without '
@@ -138,7 +129,6 @@ class User(AbstractBaseUser, ModelBase):
         related_name="user_set",
         related_query_name="user",
     )
-    status = models.SmallIntegerField(choices=STATUS, default=ACTIVE, verbose_name=_('status'))
     is_staff = models.BooleanField(verbose_name=_('is staff'), default=False)
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
     USERNAME_FIELD = 'username'
@@ -180,8 +170,8 @@ class User(AbstractBaseUser, ModelBase):
                                        instance=self,
                                        using=using)
 
-        self.status = User.INACTIVE
-        self.save(update_fields=['status', ])
+        self.is_active =False
+        self.save(update_fields=['is_active',])
         models.signals.post_delete.send(sender=self.__class__,
                                         instance=self,
                                         using=using)

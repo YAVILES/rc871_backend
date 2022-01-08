@@ -66,6 +66,11 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        if User.objects.filter(username=validated_data.get('username')).exists():
+            raise serializers.ValidationError(
+                detail={"error": 'El usuario ' + validated_data.get('username') + ' ya existe'}
+            )
+
         password = validated_data.get('password')
         email = validated_data.get('email')
         email_alternative = validated_data.get('email_alternative')
@@ -79,7 +84,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
                     user.save(update_fields=['password'])
         except ValidationError as error:
             raise serializers.ValidationError(detail={"error": error.messages})
-        return validated_data
+        return user
 
     class Meta:
         model = User
@@ -92,24 +97,22 @@ class UserDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     password = serializers.CharField(max_length=255, write_only=True, required=False)
     point = geo_fields.PointField(required=False)
     is_superuser = serializers.BooleanField(required=False, read_only=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
-
+    
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'email_alternative', 'password', 'name', 'last_name', 'full_name',
-                  'direction', 'telephone', 'phone', 'point', 'is_superuser', 'roles', 'roles_display', 'status',
-                  'status_display', 'info', 'created', 'updated', 'is_active', 'photo',)
+                  'direction', 'telephone', 'phone', 'point', 'is_superuser', 'roles', 'roles_display', 'info',
+                  'created', 'updated', 'is_active', 'photo',)
 
 
 class UserSimpleSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     point = geo_fields.PointField(required=False)
     is_superuser = serializers.BooleanField(required=False, read_only=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'name', 'last_name', 'full_name', 'direction', 'telephone', 'phone', 'point',
-                  'is_superuser', 'status', 'status_display', 'info', 'created', 'updated',)
+        fields = ('id', 'username', 'email', 'name', 'last_name', 'full_name', 'direction', 'telephone', 'phone',
+                  'point', 'is_active', 'is_superuser', 'info', 'created', 'updated',)
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):

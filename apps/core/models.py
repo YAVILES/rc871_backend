@@ -1,6 +1,7 @@
 import uuid
 from os import remove
 from os import path
+from sequences import get_next_value
 
 from django.db import models, IntegrityError
 from django.utils.translation import ugettext_lazy as _
@@ -69,6 +70,7 @@ class Banner(ModelBase):
             image_path = self.image.path
         if image_path and path.exists(image_path):
             remove(image_path)
+        Banner.objects.filter(pk=self.id).delete()
         models.signals.post_delete.send(sender=self.__class__,
                                         instance=self,
                                         using=using)
@@ -77,3 +79,24 @@ class Banner(ModelBase):
         verbose_name = _('banner')
         verbose_name_plural = _('banners')
         ordering = ['sequence_order']
+
+
+def get_branch_office_number():
+    return get_next_value('branch_office_number')
+
+
+class BranchOffice(ModelBase):
+    number = models.PositiveIntegerField(verbose_name='number', primary_key=False, db_index=True,
+                                         default=get_branch_office_number)
+    code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
+    description = models.CharField(max_length=100, verbose_name=_('description'))
+    is_active = models.BooleanField(verbose_name=_('is active'), default=True)
+    last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
+
+    def __str__(self):
+        return self.description
+
+    class Meta:
+        verbose_name = _('branch office')
+        verbose_name_plural = _('branch offices')
+        ordering = ['number']
