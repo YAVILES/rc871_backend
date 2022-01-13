@@ -9,15 +9,15 @@ def run(*args):
         database = args[0]
         work_flows = [
             {
-                'title': 'Roles',
+                'title': 'Gestión de Roles',
                 'url': '/roles',
             },
             {
-                'title': 'Usuarios',
+                'title': 'Gestión de Usuarios',
                 'url': '/users',
             },
             {
-                'title': 'Banners',
+                'title': 'Gestión de Banners',
                 'url': '/banners',
             },
         ]
@@ -26,7 +26,7 @@ def run(*args):
         for wf in work_flows:
             url_work_flows.append(wf['url'])
             try:
-                workflow, created = Workflow.objects.update_or_create(
+                workflow, created = Workflow.objects.using(database).update_or_create(
                     url=wf['url'],
                     defaults={
                         'title': wf['title']

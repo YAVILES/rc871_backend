@@ -100,3 +100,38 @@ class BranchOffice(ModelBase):
         verbose_name = _('branch office')
         verbose_name_plural = _('branch offices')
         ordering = ['number']
+
+
+class Use(ModelBase):
+    code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
+    description = models.CharField(max_length=100, verbose_name=_('description'))
+    is_active = models.BooleanField(verbose_name=_('is active'), default=True)
+    last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
+
+    def __str__(self):
+        return self.description
+
+    class Meta:
+        verbose_name = _('use')
+        verbose_name_plural = _('uses')
+        ordering = ['code']
+
+
+class Plan(ModelBase):
+    code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
+    description = models.CharField(max_length=100, verbose_name=_('description'))
+    uses = models.ManyToManyField(
+        Use,
+        verbose_name=_('uses'),
+        blank=True,
+    )
+    is_active = models.BooleanField(verbose_name=_('is active'), default=True)
+    last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
+
+    def __str__(self):
+        return self.description
+
+    class Meta:
+        verbose_name = _('plan')
+        verbose_name_plural = _('plans')
+        ordering = ['code']

@@ -12,13 +12,13 @@ from django_filters import rest_framework as filters
 from django.utils.translation import ugettext_lazy as _
 
 from apps.core.admin import BannerResource
-from apps.core.models import Banner, BranchOffice
-from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer
+from apps.core.models import Banner, BranchOffice, Use, Plan
+from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
+    UseDefaultSerializer, PlanDefaultSerializer
 from rc871_backend.utils.functions import format_headers_import
 
 
 class BannerFilter(filters.FilterSet):
-
     class Meta:
         model = Banner
         fields = ['title', 'subtitle', 'content', 'url', 'sequence_order', 'is_active']
@@ -123,7 +123,6 @@ class BannerViewSet(ModelViewSet):
 
 
 class BranchOfficeFilter(filters.FilterSet):
-
     class Meta:
         model = BranchOffice
         fields = ['number', 'code', 'description', 'is_active']
@@ -136,6 +135,56 @@ class BranchOfficeViewSet(ModelViewSet):
     serializer_class = BranchOfficeDefaultSerializer
     search_fields = ['number', 'code', 'description', 'is_active']
     permission_classes = (AllowAny,)
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+
+class UseFilter(filters.FilterSet):
+    class Meta:
+        model = Use
+        fields = ['code', 'description', 'is_active']
+
+
+class UseViewSet(ModelViewSet):
+    queryset = Use.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = UseFilter
+    serializer_class = UseDefaultSerializer
+    search_fields = ['code', 'description', 'is_active']
+    permission_classes = (AllowAny,)
+    authentication_classes = []
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+
+class PlanFilter(filters.FilterSet):
+    class Meta:
+        model = Plan
+        fields = ['code', 'description', 'is_active']
+
+
+class PlanViewSet(ModelViewSet):
+    queryset = Plan.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = PlanFilter
+    serializer_class = PlanDefaultSerializer
+    search_fields = ['code', 'description', 'is_active']
+    permission_classes = (AllowAny,)
+    authentication_classes = []
 
     def paginate_queryset(self, queryset):
         """

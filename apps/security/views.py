@@ -1,4 +1,5 @@
 import tablib
+from django.db.models.query_utils import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action, authentication_classes
@@ -13,7 +14,7 @@ from rc871_backend.utils.functions import format_headers_import
 from .admin import UserResource, RoleResource
 from .models import User, Workflow, Role
 from .serializers import UserDefaultSerializer, CustomTokenObtainPairSerializer, RoleDefaultSerializer, \
-    UserCreateSerializer, WorkflowDefaultSerializer
+    UserCreateSerializer, WorkflowDefaultSerializer, UserCreateClientSerializer
 
 
 class UserFilter(filters.FilterSet):
@@ -24,7 +25,7 @@ class UserFilter(filters.FilterSet):
 
 
 class UserViewSet(ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.all() #filter(Q(is_staff=True) | Q(is_superuser=True))
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = UserFilter
     serializer_class = UserDefaultSerializer
@@ -67,7 +68,7 @@ class UserViewSet(ModelViewSet):
     @authentication_classes([])
     @action(methods=['POST', ], detail=False)
     def create_client(self, request, *args, **kwargs):
-        serializer = UserCreateSerializer(data=request.data)
+        serializer = UserCreateClientSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         # headers = self.get_success_headers(serializer.data)

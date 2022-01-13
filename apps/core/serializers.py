@@ -2,7 +2,7 @@
 from django_restql.mixins import DynamicFieldsMixin
 from rest_framework import serializers
 
-from apps.core.models import Banner, BranchOffice
+from apps.core.models import Banner, BranchOffice, Use, Plan
 
 
 class BannerDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -33,4 +33,22 @@ class BranchOfficeDefaultSerializer(DynamicFieldsMixin, serializers.ModelSeriali
 
     class Meta:
         model = BranchOffice
+        fields = serializers.ALL_FIELDS
+
+
+class UseDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+
+    class Meta:
+        model = Use
+        fields = serializers.ALL_FIELDS
+
+
+class PlanDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    uses = serializers.PrimaryKeyRelatedField(
+        queryset=Use.objects.all(), many=True, required=False
+    )
+    uses_display = UseDefaultSerializer(many=True, read_only=True, source="uses")
+
+    class Meta:
+        model = Plan
         fields = serializers.ALL_FIELDS
