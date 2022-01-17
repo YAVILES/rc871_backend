@@ -12,9 +12,9 @@ from django_filters import rest_framework as filters
 from django.utils.translation import ugettext_lazy as _
 
 from apps.core.admin import BannerResource
-from apps.core.models import Banner, BranchOffice, Use, Plan
+from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium
 from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
-    UseDefaultSerializer, PlanDefaultSerializer
+    UseDefaultSerializer, PlanDefaultSerializer, CoverageDefaultSerializer, PremiumDefaultSerializer
 from rc871_backend.utils.functions import format_headers_import
 
 
@@ -37,6 +37,7 @@ class BannerViewSet(ModelViewSet):
         if self.action in ['create', 'update']:
             return BannerEditSerializer
         return self.serializer_class
+
 
     def paginate_queryset(self, queryset):
         """
@@ -194,3 +195,74 @@ class PlanViewSet(ModelViewSet):
         if self.paginator is None or not_paginator:
             return None
         return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+
+class CoverageFilter(filters.FilterSet):
+    class Meta:
+        model = Coverage
+        fields = ['code', 'description', 'is_active']
+
+
+class CoverageViewSet(ModelViewSet):
+    queryset = Coverage.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = CoverageFilter
+    serializer_class = CoverageDefaultSerializer
+    search_fields = ['code', 'description', 'is_active']
+    permission_classes = (AllowAny,)
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+
+class PremiumFilter(filters.FilterSet):
+    class Meta:
+        model = Premium
+        fields = ['coverage', 'use', 'insured_amount', 'cost']
+
+
+class PremiumViewSet(ModelViewSet):
+    queryset = Premium.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = PremiumFilter
+    serializer_class = PremiumDefaultSerializer
+    search_fields = ['coverage', 'use', 'insured_amount', 'cost']
+    permission_classes = (AllowAny,)
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+    @action(detail=False, methods=['POST', ])
+    @transaction.atomic()
+    def multiple(self, request):
+        premiums = request.data.get('premiums', None)
+        try:
+            if premiums:
+                for premium in premiums:
+                    obj, created = Premium.objects.update_or_create(
+                        coverage_id=premium['coverage'],
+                        use_id=premium['use'],
+                        plan_id=premium['plan'],
+                        defaults={
+                            'insured_amount': premium['insured_amount'],
+                            'cost': premium['cost'],
+                        },
+                    )
+            else:
+                raise serializers.ValidationError(
+                    detail={'error': _("Debe enviar al menos una prima")})
+        except ValueError as e:
+            raise serializers.ValidationError(detail={'error': _(e.__str__())})
+        return Response(status=status.HTTP_200_OK)

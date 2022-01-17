@@ -135,3 +135,37 @@ class Plan(ModelBase):
         verbose_name = _('plan')
         verbose_name_plural = _('plans')
         ordering = ['code']
+
+
+class Coverage(ModelBase):
+    code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
+    description = models.CharField(max_length=100, verbose_name=_('description'))
+    plans = models.ManyToManyField(
+        Plan,
+        verbose_name=_('plans'),
+        blank=True,
+    )
+    default = models.BooleanField(verbose_name=_('default'), default=False)
+    is_active = models.BooleanField(verbose_name=_('is active'), default=True)
+    last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
+
+    def __str__(self):
+        return self.description
+
+    class Meta:
+        verbose_name = _('coverage')
+        verbose_name_plural = _('coverage')
+        ordering = ['code']
+
+
+class Premium(ModelBase):
+    coverage = models.ForeignKey(Coverage, verbose_name=_('coverage'), on_delete=models.PROTECT)
+    use = models.ForeignKey(Use, verbose_name=_('use'), on_delete=models.PROTECT)
+    plan = models.ForeignKey(Plan, verbose_name=_('plan'), on_delete=models.PROTECT, null=True)
+    insured_amount = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('price'), default=0.0)
+    cost = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('cost'), default=0.0)
+    last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
+
+    class Meta:
+        verbose_name = _('premium')
+        verbose_name_plural = _('premiums')
