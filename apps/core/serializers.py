@@ -51,12 +51,12 @@ class CoveragePremiumSerializer(DynamicFieldsMixin, serializers.ModelSerializer)
     premium = serializers.SerializerMethodField(read_only=True)
 
     def get_premium(self, obj: Coverage):
-        request = self.context['request']
+        request = self.context.get("request")
         use = request.query_params.get('use', None)
         if use:
             try:
                 premium = Premium.objects.get(coverage_id=obj.id, use_id=use)
-                PremiumCoverageSerializer(premium, exclude=['coverage'])
+                PremiumCoverageSerializer(premium).data
             except ObjectDoesNotExist:
                 return None
 
@@ -80,7 +80,7 @@ class PremiumUseSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         queryset=Use.objects.all(),
         required=True,
     )
-    coverage_display = CoveragePremiumSerializer(read_only=True, source='coverage', exclude=['plans'])
+    coverage_display = CoveragePremiumSerializer(read_only=True, source='coverage', exclude=['plans', 'premium'])
     insured_amount = serializers.DecimalField(max_digits=50, decimal_places=2, default=0.0)
     cost = serializers.DecimalField(max_digits=50, decimal_places=2, default=0.0)
 
@@ -102,12 +102,12 @@ class CoveragePlanSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     premium = serializers.SerializerMethodField(read_only=True)
 
     def get_premium(self, obj: Coverage):
-        request = self.context['request']
+        request = self.context.get("request")
         use = request.query_params.get('use', None)
         if use:
             try:
                 premium = Premium.objects.get(coverage_id=obj.id, use_id=use)
-                PremiumCoverageSerializer(premium, exclude=['coverage'])
+                return PremiumCoverageSerializer(premium).data
             except ObjectDoesNotExist:
                 return None
 
@@ -130,23 +130,9 @@ class PlanDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         fields = serializers.ALL_FIELDS
 
 
-class PremiumCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    use = serializers.PrimaryKeyRelatedField(
-        queryset=Use.objects.all(),
-        required=True,
-    )
-    use_display = UseDefaultSerializer(read_only=True, source='use')
-    insured_amount = serializers.DecimalField(max_digits=50, decimal_places=2, default=0.0)
-    cost = serializers.DecimalField(max_digits=50, decimal_places=2, default=0.0)
-
-    class Meta:
-        model = Premium
-        fields = serializers.ALL_FIELDS
-
-
 class CoverageDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     plans_display = PlanDefaultSerializer(many=True, read_only=True, source='plans')
-    premiums = PremiumCoverageSerializer(many=True, read_only=True, source="premium_set", exclude=['coverage'])
+    premiums = PremiumCoverageSerializer(many=True, read_only=True, source="premium_set")
 
     class Meta:
         model = Coverage
