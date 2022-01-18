@@ -36,7 +36,7 @@ class BannerViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.action in ['create', 'update']:
             return BannerEditSerializer
-        return self.serializer_class()
+        return self.serializer_class
 
     def paginate_queryset(self, queryset):
         """
