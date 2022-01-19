@@ -123,7 +123,7 @@ class PlanDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         queryset=Use.objects.all(), many=True, required=False
     )
     uses_display = UseDefaultSerializer(many=True, read_only=True, source="uses", exclude=['created', 'updated'])
-    coverage = CoveragePlanSerializer(many=True, read_only=True, source="coverage_set", exclude=['plans'])
+    coverage = CoveragePlanSerializer(many=True, read_only=True, exclude=['plans'])
 
     class Meta:
         model = Plan

@@ -155,6 +155,16 @@ class UserDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                   'created', 'updated', 'is_active', 'is_staff', 'photo',)
 
 
+class ClientDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    password = serializers.CharField(max_length=255, write_only=True, required=False)
+    point = geo_fields.PointField(required=False)
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'email_alternative', 'password', 'name', 'last_name', 'full_name',
+                  'direction', 'telephone', 'phone', 'point', 'info', 'created', 'updated', 'is_active', 'photo',)
+
+
 class UserSimpleSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     point = geo_fields.PointField(required=False)
     is_superuser = serializers.BooleanField(required=False, read_only=True)

@@ -128,6 +128,12 @@ class Plan(ModelBase):
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
     last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
 
+    @property
+    def coverage(self):
+        query = self.coverage_set.all()
+        query_default = Coverage.objects.filter(default=True)
+        return query_default.union(query)
+
     def __str__(self):
         return self.description
 
