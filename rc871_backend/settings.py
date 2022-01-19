@@ -180,8 +180,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 MEDIA_URL = env('MEDIA_URL')
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")  # '/home/admin/domains/clientes-grupobtp.com/public_html/media/'
-
+MEDIA_ROOT = '/var/www/html/admin871/media/'  # os.path.join(BASE_DIR, "media")
 
 AUTH_USER_MODEL = 'security.User'
 AUTHENTICATION_BACKENDS = ['apps.security.backends.CustomAuthenticationBackend', ]
