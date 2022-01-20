@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     # RC871
     'apps.core.apps.CoreConfig',
     'apps.security.apps.SecurityConfig',
+    'apps.system.apps.SystemConfig',
     'apps.chat.apps.ChatConfig',
 ]
 
@@ -260,7 +261,7 @@ IMPORT_EXPORT_USE_TRANSACTIONS = True
 IMPORT_EXPORT_IMPORT_PERMISSION_CODE = 'change'
 
 CONSTANCE_CONFIG = {
-    'IVA': (12.00, "Impuesto al Valor Agregado (IVA)", float),
+    #'IVA': (12.00, "Impuesto al Valor Agregado (IVA)", float),
     'CHANGE_FACTOR': (0, "Factor de cambio", float),
 }
 

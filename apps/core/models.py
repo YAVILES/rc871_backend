@@ -175,3 +175,46 @@ class Premium(ModelBase):
     class Meta:
         verbose_name = _('premium')
         verbose_name_plural = _('premiums')
+
+
+class Mark(ModelBase):
+    code = models.CharField(max_length=50, blank=True, verbose_name=_('code'))
+    description = models.CharField(max_length=255, blank=True, verbose_name=_('description'))
+
+    class Meta:
+        verbose_name = _('mark')
+        verbose_name_plural = _('marks')
+
+
+class Model(ModelBase):
+    mark = models.ForeignKey(Mark, verbose_name=_('mark'), on_delete=models.PROTECT)
+    code = models.CharField(max_length=50, blank=True, verbose_name=_('code'))
+    description = models.CharField(max_length=255, blank=True, verbose_name=_('description'))
+
+    class Meta:
+        verbose_name = _('model')
+        verbose_name_plural = _('models')
+
+
+class Vehicle(ModelBase):
+    SYNCHRONOUS = 1
+    AUTOMATIC = 2
+
+    TRANSMISSIONS = (
+        (SYNCHRONOUS, _('Sincrónica')),
+        (AUTOMATIC, _('Automática'))
+    )
+    model = models.ForeignKey(Model, verbose_name=_('model'), on_delete=models.PROTECT)
+    serial_bodywork = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('serial bodywork'))
+    serial_engine = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('serial engine'))
+    license_plate = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('license plate'))
+    stalls = models.IntegerField(verbose_name='stalls', default=4)
+    color = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('color'))
+    use = models.ForeignKey(Use, verbose_name=_('use'), on_delete=models.PROTECT)
+    transmission = models.SmallIntegerField(choices=TRANSMISSIONS, default=SYNCHRONOUS, verbose_name=_('transmission'))
+    owner_data = models.JSONField(default=dict,  verbose_name=_('owner data'))
+    taker = models.ForeignKey('security.User', verbose_name=_('taker'), on_delete=models.PROTECT)
+
+    class Meta:
+        verbose_name = _('vehicle')
+        verbose_name_plural = _('vehicles')

@@ -1,9 +1,26 @@
 # coding=utf-8
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from django_restql.mixins import DynamicFieldsMixin
 from rest_framework import serializers
 
-from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium
+from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle
+from apps.security.models import User
+from apps.security.serializers import UserDefaultSerializer
+
+
+class DataOwnerSerializer(serializers.Serializer):
+    identification_number = serializers.CharField(max_length=50, required=True)
+    name = serializers.CharField(max_length=100, required=True)
+    last_name = serializers.CharField(max_length=100, required=True)
+    rif = serializers.CharField(max_length=100, required=True)
+    license = serializers.CharField(max_length=100, required=True)
+    medical_certificate = serializers.BooleanField(required=True)
+
+    class Meta:
+        fields = ('way_to_pay', 'credit', 'credit_limit', 'credit_limit_value', 'shopping_cart', 'apply_discount',
+                  'discount_rate', 'price_list_id', 'withholding_agent', 'coin', 'credit_days', 'discount_action',
+                  'type_action',)
 
 
 class BannerDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -38,7 +55,6 @@ class BranchOfficeDefaultSerializer(DynamicFieldsMixin, serializers.ModelSeriali
 
 
 class PremiumCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-
     insured_amount = serializers.DecimalField(max_digits=50, decimal_places=2, default=0.0)
     cost = serializers.DecimalField(max_digits=50, decimal_places=2, default=0.0)
 
@@ -98,7 +114,6 @@ class UseDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
 
 class CoveragePlanSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-
     premium = serializers.SerializerMethodField(read_only=True)
 
     def get_premium(self, obj: Coverage):
@@ -160,4 +175,59 @@ class PremiumDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
     class Meta:
         model = Premium
+        fields = serializers.ALL_FIELDS
+
+
+class MarkDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    class Meta:
+        model = Mark
+        fields = serializers.ALL_FIELDS
+
+
+class ModelDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    mark = serializers.PrimaryKeyRelatedField(
+        queryset=Mark.objects.all(),
+        required=True,
+    )
+    mark_display = MarkDefaultSerializer(read_only=True, source='mark')
+
+    class Meta:
+        model = Model
+        fields = serializers.ALL_FIELDS
+
+
+class VehicleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    use = serializers.PrimaryKeyRelatedField(
+        queryset=Use.objects.all(),
+        required=True
+    )
+    use_display = UseDefaultSerializer(read_only=True, source='use')
+    model = serializers.PrimaryKeyRelatedField(
+        queryset=Model.objects.all(),
+        required=True
+    )
+    model_display = ModelDefaultSerializer(read_only=True, source='model')
+    taker = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        required=False
+    )
+    taker_display = UserDefaultSerializer(read_only=True, source='taker')
+    # serializers.HiddenField(default=serializers.CurrentUserDefault())
+    info = DataOwnerSerializer(write_only=True)
+
+    def create(self, validated_data):
+        try:
+            request = self.context.get("request")
+            with transaction.atomic():
+                taker = validated_data.get('taker', None)
+                if taker is None:
+                    validated_data['taker'] = request.user
+
+                vehicle = super(VehicleDefaultSerializer, self).create(validated_data)
+        except ValueError as e:
+            raise serializers.ValidationError(detail={"error": e})
+        return vehicle
+
+    class Meta:
+        model = Vehicle
         fields = serializers.ALL_FIELDS

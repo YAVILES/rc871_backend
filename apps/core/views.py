@@ -12,9 +12,10 @@ from django_filters import rest_framework as filters
 from django.utils.translation import ugettext_lazy as _
 
 from apps.core.admin import BannerResource
-from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium
+from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle
 from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
-    UseDefaultSerializer, PlanDefaultSerializer, CoverageDefaultSerializer, PremiumDefaultSerializer
+    UseDefaultSerializer, PlanDefaultSerializer, CoverageDefaultSerializer, PremiumDefaultSerializer, \
+    ModelDefaultSerializer, MarkDefaultSerializer, VehicleDefaultSerializer
 from rc871_backend.utils.functions import format_headers_import
 
 
@@ -265,3 +266,77 @@ class PremiumViewSet(ModelViewSet):
         except ValueError as e:
             raise serializers.ValidationError(detail={'error': _(e.__str__())})
         return Response(status=status.HTTP_200_OK)
+
+
+class MarkFilter(filters.FilterSet):
+    class Meta:
+        model = Mark
+        fields = ['code', 'description']
+
+
+class MarkViewSet(ModelViewSet):
+    queryset = Mark.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = MarkFilter
+    serializer_class = MarkDefaultSerializer
+    search_fields = ['code', 'description']
+    permission_classes = (AllowAny,)
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+
+class ModelFilter(filters.FilterSet):
+    class Meta:
+        model = Model
+        fields = ['code', 'description']
+
+
+class ModelViewSet(ModelViewSet):
+    queryset = Model.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = ModelFilter
+    serializer_class = ModelDefaultSerializer
+    search_fields = ['code', 'description', 'mark__description']
+    permission_classes = (AllowAny,)
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+
+class VehicleFilter(filters.FilterSet):
+    class Meta:
+        model = Vehicle
+        fields = ['serial_bodywork', 'serial_engine', 'license_plate', 'transmission', 'taker__username',
+                  'model__description']
+
+
+class VehicleViewSet(ModelViewSet):
+    queryset = Vehicle.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = VehicleFilter
+    serializer_class = VehicleDefaultSerializer
+    search_fields = ['serial_bodywork', 'serial_engine', 'license_plate', 'transmission', 'taker__username',
+                     'model__description']
+    permission_classes = (AllowAny,)
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
