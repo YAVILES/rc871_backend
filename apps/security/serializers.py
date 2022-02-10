@@ -9,7 +9,7 @@ from drf_extra_fields import geo_fields
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from apps.security.models import User, Workflow, Role
+from apps.security.models import User, Workflow, Role, BranchOffice
 
 
 class WorkflowDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -104,6 +104,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
     email_alternative = serializers.EmailField(required=False)
     photo = serializers.ImageField(required=False)
+    branch_office = serializers.PrimaryKeyRelatedField(
+        queryset=BranchOffice.objects.all(), required=True
+    )
 
     def validate(self, attrs):
         password = attrs.get('password')
@@ -139,7 +142,15 @@ class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'email_alternative', 'photo', 'password', 'name', 'last_name', 'full_name',
-                  'direction', 'telephone', 'phone', 'point', 'is_superuser', 'roles', 'info',)
+                  'direction', 'telephone', 'phone', 'branch_office', 'point', 'is_superuser', 'roles', 'info',)
+
+
+class BranchOfficeUserSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    number = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = BranchOffice
+        fields = serializers.ALL_FIELDS
 
 
 class UserDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -147,12 +158,14 @@ class UserDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     password = serializers.CharField(max_length=255, write_only=True, required=False)
     point = geo_fields.PointField(required=False)
     is_superuser = serializers.BooleanField(required=False, read_only=True)
-    
+    branch_office = serializers.PrimaryKeyRelatedField(
+        queryset=BranchOffice.objects.all(), required=True
+    )
+    branch_office_display = BranchOfficeUserSerializer(read_only=True, source='branch_office')
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'email_alternative', 'password', 'name', 'last_name', 'full_name',
-                  'direction', 'telephone', 'phone', 'point', 'is_superuser', 'roles', 'roles_display', 'info',
-                  'created', 'updated', 'is_active', 'is_staff', 'photo',)
+        fields = serializers.ALL_FIELDS
 
 
 class ClientDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -172,7 +185,7 @@ class UserSimpleSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'name', 'last_name', 'full_name', 'direction', 'telephone', 'phone',
-                  'point', 'is_active', 'is_superuser', 'is_staff', 'info', 'roles', 'created', 'updated',)
+                  'point', 'is_active', 'is_superuser', 'is_staff', 'branch_office', 'info', 'roles', 'created', 'updated',)
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):

@@ -2,7 +2,7 @@ import uuid
 from os import remove
 from os import path
 from sequences import get_next_value
-
+from django.contrib.gis.db import models as geo_models
 from django.db import models, IntegrityError
 from django.utils.translation import ugettext_lazy as _
 
@@ -44,6 +44,7 @@ class Location(ModelBase):
 
     class Meta:
         verbose_name = _('location')
+        verbose_name_plural = _('locations')
         verbose_name_plural = _('locations')
         ordering = ['description']
 
@@ -91,6 +92,8 @@ class BranchOffice(ModelBase):
     code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
     description = models.CharField(max_length=100, verbose_name=_('description'))
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
+    link_google_maps = models.CharField(null=True, blank=True, max_length=350, verbose_name=_('link google maps'))
+    geo_location = geo_models.PointField(verbose_name=_('geo location'), null=True)
     last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
 
     def __str__(self):
@@ -279,6 +282,7 @@ class Vehicle(ModelBase):
         verbose_name=_('medical certificate'), upload_to=medical_certificate_image_path, null=True,
         help_text="Certificado médico"
     )
+    is_active = models.BooleanField(verbose_name=_('is active'), default=True)
 
     class Meta:
         verbose_name = _('vehicle')

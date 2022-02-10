@@ -7,7 +7,33 @@ from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
-from apps.core.models import ModelBase
+from apps.core.models import ModelBase, BranchOffice
+
+
+class Workflow(ModelBase):
+    title = models.CharField(max_length=100, verbose_name=_('title'))
+    url = models.CharField(max_length=255, verbose_name=_('url'))
+
+    class Meta:
+        verbose_name = _('workflow')
+        verbose_name_plural = _('work flows')
+
+
+class Role(models.Model):
+    name = models.CharField(_('name'), max_length=150, unique=True)
+    workflows = models.ManyToManyField(
+        Workflow,
+        verbose_name=_('work flows'),
+        blank=True,
+    )
+    is_active = models.BooleanField(verbose_name=_('is active'), default=True)
+
+    class Meta:
+        verbose_name = _('role')
+        verbose_name_plural = _('roles')
+
+    def __str__(self):
+        return self.name
 
 
 class UserManager(BaseUserManager):
@@ -62,32 +88,6 @@ class UserManager(BaseUserManager):
         return self._create_user(email, name, last_name, password, database, **extra_fields)
 
 
-class Workflow(ModelBase):
-    title = models.CharField(max_length=100, verbose_name=_('title'))
-    url = models.CharField(max_length=255, verbose_name=_('url'))
-
-    class Meta:
-        verbose_name = _('workflow')
-        verbose_name_plural = _('work flows')
-
-
-class Role(models.Model):
-    name = models.CharField(_('name'), max_length=150, unique=True)
-    workflows = models.ManyToManyField(
-        Workflow,
-        verbose_name=_('work flows'),
-        blank=True,
-    )
-    is_active = models.BooleanField(verbose_name=_('is active'), default=True)
-
-    class Meta:
-        verbose_name = _('role')
-        verbose_name_plural = _('roles')
-
-    def __str__(self):
-        return self.name
-
-
 class User(AbstractBaseUser, ModelBase):
     code = models.CharField(max_length=255, verbose_name=_('code'), null=True, unique=True,
                             help_text="Código que se usaría para las sincronización con apps externas")
@@ -131,6 +131,8 @@ class User(AbstractBaseUser, ModelBase):
         related_query_name="user",
     )
     is_staff = models.BooleanField(verbose_name=_('is staff'), default=False)
+    branch_office = models.ForeignKey(BranchOffice, blank=True, null=True, verbose_name=_('branch_office'),
+                                      on_delete=models.PROTECT)
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'name', 'last_name', 'phone']
