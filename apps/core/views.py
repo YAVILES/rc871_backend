@@ -332,6 +332,37 @@ class VehicleViewSet(ModelViewSet):
                      'model__description']
     permission_classes = (AllowAny,)
 
+    @action(methods=['GET'], detail=False)
+    def field_options(self, request):
+        field = self.request.query_params.get('field', None)
+        fields = self.request.query_params.getlist('fields', None)
+        if fields:
+            try:
+                data = {}
+                for field in fields:
+                    data[field] = []
+                    for c in Vehicle._meta.get_field(field).choices:
+                        data[field].append({
+                            "value": c[0],
+                            "description": c[1]
+                        })
+                return Response(data, status=status.HTTP_200_OK)
+            except ValueError as e:
+                return Response(e, status=status.HTTP_400_BAD_REQUEST)
+        elif field:
+            try:
+                choices = []
+                for c in Vehicle._meta.get_field(field).choices:
+                    choices.append({
+                        "value": c[0],
+                        "description": c[1]
+                    })
+                return Response(choices, status=status.HTTP_200_OK)
+            except ValueError as e:
+                return Response(e, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "the field parameter is mandatory"}, status=status.HTTP_400_BAD_REQUEST)
+
     def paginate_queryset(self, queryset):
         """
         Return a single page of results, or `None` if pagination is disabled.

@@ -180,6 +180,7 @@ class Premium(ModelBase):
 class Mark(ModelBase):
     code = models.CharField(max_length=50, blank=True, verbose_name=_('code'))
     description = models.CharField(max_length=255, blank=True, verbose_name=_('description'))
+    is_active = models.BooleanField(verbose_name=_('is active'), default=True)
 
     class Meta:
         verbose_name = _('mark')
@@ -190,6 +191,7 @@ class Model(ModelBase):
     mark = models.ForeignKey(Mark, verbose_name=_('mark'), on_delete=models.PROTECT)
     code = models.CharField(max_length=50, blank=True, verbose_name=_('code'))
     description = models.CharField(max_length=255, blank=True, verbose_name=_('description'))
+    is_active = models.BooleanField(verbose_name=_('is active'), default=True)
 
     class Meta:
         verbose_name = _('model')
