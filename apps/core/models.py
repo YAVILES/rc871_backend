@@ -198,6 +198,38 @@ class Model(ModelBase):
         verbose_name_plural = _('models')
 
 
+def circulation_card_image_path(vehicle: 'Vehicle', file_name):
+    return 'img/vehicle/circulation_card/{0}/{1}'.format(vehicle.license_plate, file_name)
+
+
+def registration_certificate_image_path(vehicle: 'Vehicle', file_name):
+    return 'img/vehicle/registration_certificate/{0}/{1}'.format(vehicle.license_plate, file_name)
+
+
+def holder_s_license_image_path(vehicle: 'Vehicle', file_name):
+    return 'img/vehicle/holder_s_license/{0}/{1}'.format(vehicle.license_plate, file_name)
+
+
+def medical_certificate_image_path(vehicle: 'Vehicle', file_name):
+    return 'img/vehicle/medical_certificate/{0}/{1}'.format(vehicle.license_plate, file_name)
+
+
+def owner_rif_image_path(vehicle: 'Vehicle', file_name):
+    return 'img/vehicle/owner/rif/{0}/{1}'.format(vehicle.license_plate, file_name)
+
+
+def owner_medical_certificate_image_path(vehicle: 'Vehicle', file_name):
+    return 'img/vehicle/owner/owner_medical_certificate/{0}/{1}'.format(vehicle.license_plate, file_name)
+
+
+def owner_identity_card_image_path(vehicle: 'Vehicle', file_name):
+    return 'img/vehicle/owner/identity_card/{0}/{1}'.format(vehicle.license_plate, file_name)
+
+
+def owner_license_image_path(vehicle: 'Vehicle', file_name):
+    return 'img/vehicle/owner/license/{0}/{1}'.format(vehicle.license_plate, file_name)
+
+
 class Vehicle(ModelBase):
     SYNCHRONOUS = 1
     AUTOMATIC = 2
@@ -214,8 +246,39 @@ class Vehicle(ModelBase):
     color = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('color'))
     use = models.ForeignKey(Use, verbose_name=_('use'), on_delete=models.PROTECT)
     transmission = models.SmallIntegerField(choices=TRANSMISSIONS, default=SYNCHRONOUS, verbose_name=_('transmission'))
-    owner_data = models.JSONField(default=dict,  verbose_name=_('owner data'))
+    owner_name = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('owner name'),
+                                  help_text="Nombre del dueño")
+    owner_last_name = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('owner lastname'),
+                                       help_text="Apellido del dueño")
+    owner_identity_card = models.ImageField(
+        verbose_name=_('owner identity card'), upload_to=owner_identity_card_image_path, null=True,
+        help_text="Cédula de identidad del dueño"
+    )
+    owner_rif = models.ImageField(verbose_name=_('owner_rif'), upload_to=owner_rif_image_path, null=True,
+                                  help_text="RIF del dueño")
+    owner_license = models.ImageField(
+        verbose_name=_('owner license'), upload_to=owner_license_image_path, null=True,
+        help_text="Licencia del dueño"
+    )
+    owner_medical_certificate = models.ImageField(
+        verbose_name=_('owner medical certificate'), upload_to=owner_medical_certificate_image_path, null=True,
+        help_text="Certificado médico del dueño"
+    )
     taker = models.ForeignKey('security.User', verbose_name=_('taker'), on_delete=models.PROTECT)
+    circulation_card = models.ImageField(verbose_name=_('circulation card'), upload_to=circulation_card_image_path,
+                                         null=True, help_text="Carnet de circulación")
+    registration_certificate = models.ImageField(
+        verbose_name=_('registration certificate'), upload_to=registration_certificate_image_path, null=True,
+        help_text="Certificado de registro de vehículo (Tiutlo)"
+    )
+    holder_s_license = models.ImageField(
+        verbose_name=_('holder\'s license'), upload_to=holder_s_license_image_path, null=True,
+        help_text="Licencia del tomador"
+    )
+    medical_certificate = models.ImageField(
+        verbose_name=_('medical certificate'), upload_to=medical_certificate_image_path, null=True,
+        help_text="Certificado médico"
+    )
 
     class Meta:
         verbose_name = _('vehicle')

@@ -9,20 +9,6 @@ from apps.security.models import User
 from apps.security.serializers import UserDefaultSerializer
 
 
-class DataOwnerSerializer(serializers.Serializer):
-    identification_number = serializers.CharField(max_length=50, required=True)
-    name = serializers.CharField(max_length=100, required=True)
-    last_name = serializers.CharField(max_length=100, required=True)
-    rif = serializers.CharField(max_length=100, required=True)
-    license = serializers.CharField(max_length=100, required=True)
-    medical_certificate = serializers.BooleanField(required=True)
-
-    class Meta:
-        fields = ('way_to_pay', 'credit', 'credit_limit', 'credit_limit_value', 'shopping_cart', 'apply_discount',
-                  'discount_rate', 'price_list_id', 'withholding_agent', 'coin', 'credit_days', 'discount_action',
-                  'type_action',)
-
-
 class BannerDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     image = serializers.SerializerMethodField(required=False, read_only=True)
 
@@ -212,8 +198,87 @@ class VehicleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         required=False
     )
     taker_display = UserDefaultSerializer(read_only=True, source='taker')
+    serial_bodywork = serializers.CharField()
+    serial_engine = serializers.CharField()
+    license_plate = serializers.CharField()
+    stalls = serializers.IntegerField(default=4)
+    color = serializers.CharField()
+    transmission = serializers.IntegerField()
+    transmission_display = serializers.CharField(source='get_transmission_display', read_only=True)
+    owner_name = serializers.CharField()
+    owner_last_name = serializers.CharField()
+    owner_identity_card = serializers.ImageField(required=False)
+
+    def get_owner_identity_card(self, obj: 'Vehicle'):
+        if obj.owner_identity_card and hasattr(obj.owner_identity_card, 'url'):
+            owner_identity_card_url = obj.owner_identity_card.url
+            return owner_identity_card_url
+        else:
+            return None
+
+    owner_rif = serializers.ImageField(required=False)
+
+    def get_owner_rif(self, obj: 'Vehicle'):
+        if obj.owner_rif and hasattr(obj.owner_rif, 'url'):
+            owner_rif_url = obj.owner_rif.url
+            return owner_rif_url
+        else:
+            return None
+
+    owner_license = serializers.ImageField(required=False)
+
+    def get_owner_license(self, obj: 'Vehicle'):
+        if obj.owner_license and hasattr(obj.owner_license, 'url'):
+            owner_license_url = obj.owner_license.url
+            return owner_license_url
+        else:
+            return None
+
+    owner_medical_certificate = serializers.ImageField(required=False)
+
+    def get_owner_medical_certificate(self, obj: 'Vehicle'):
+        if obj.owner_medical_certificate and hasattr(obj.owner_medical_certificate, 'url'):
+            owner_medical_certificate_url = obj.owner_medical_certificate.url
+            return owner_medical_certificate_url
+        else:
+            return None
+
+    circulation_card = serializers.ImageField(required=False)
+
+    def get_circulation_card(self, obj: 'Vehicle'):
+        if obj.circulation_card and hasattr(obj.circulation_card, 'url'):
+            circulation_card_url = obj.circulation_card.url
+            return circulation_card_url
+        else:
+            return None
+
+    registration_certificate = serializers.ImageField(required=False)
+
+    def get_registration_certificate(self, obj: 'Vehicle'):
+        if obj.registration_certificate and hasattr(obj.registration_certificate, 'url'):
+            registration_certificate_url = obj.registration_certificate.url
+            return registration_certificate_url
+        else:
+            return None
+
+    holder_s_license = serializers.ImageField(required=False)
+
+    def get_holder_s_license(self, obj: 'Vehicle'):
+        if obj.holder_s_license and hasattr(obj.holder_s_license, 'url'):
+            holder_s_license_url = obj.holder_s_license.url
+            return holder_s_license_url
+        else:
+            return None
+
+    medical_certificate = serializers.ImageField(required=False)
+
+    def get_medical_certificate(self, obj: 'Vehicle'):
+        if obj.medical_certificate and hasattr(obj.medical_certificate, 'url'):
+            medical_certificate_url = obj.medical_certificate.url
+            return medical_certificate_url
+        else:
+            return None
     # serializers.HiddenField(default=serializers.CurrentUserDefault())
-    info = DataOwnerSerializer(write_only=True)
 
     def create(self, validated_data):
         try:
