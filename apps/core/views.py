@@ -1,5 +1,6 @@
 import tablib
 from django.db import transaction
+from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, serializers, mixins
 from rest_framework.decorators import action
@@ -331,6 +332,41 @@ class VehicleViewSet(ModelViewSet):
     search_fields = ['serial_bodywork', 'serial_engine', 'license_plate', 'transmission', 'taker__username',
                      'model__description']
     permission_classes = (AllowAny,)
+
+    @action(methods=['GET'], detail=True)
+    def download_archive(self, request, pk):
+        archive = self.request.query_params.get('archive', None)
+        if archive:
+            vehicle: Vehicle = self.get_object()
+            try:
+                if archive == 'owner_identity_card':
+                    filename = vehicle.owner_identity_card.path
+                elif archive == 'owner_rif':
+                    filename = vehicle.owner_rif.path
+                elif archive == 'owner_license':
+                    filename = vehicle.owner_license.path
+                elif archive == 'owner_medical_certificate':
+                    filename = vehicle.owner_medical_certificate.path
+                elif archive == 'circulation_card':
+                    filename = vehicle.circulation_card.path
+                elif archive == 'registration_certificate':
+                    filename = vehicle.registration_certificate.path
+                elif archive == 'holder_s_license':
+                    filename = vehicle.holder_s_license.path
+                elif archive == 'medical_certificate':
+                    filename = vehicle.medical_certificate.path
+                response = FileResponse(open(filename, 'rb'))
+                return response
+            except ValueError as e:
+                return Response(
+                    {"error": e.__str__()},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            return Response(
+                {"error": "Debe identificar que archivo desea descargar"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     @action(methods=['GET'], detail=False)
     def field_options(self, request):
