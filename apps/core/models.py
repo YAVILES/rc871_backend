@@ -39,9 +39,6 @@ class Location(ModelBase):
     description = models.CharField(max_length=100, verbose_name=_('description'))
     last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
 
-    def __str__(self):
-        return self.description if not self.parent else "{} -> {}".format(self.description, self.parent.description)
-
     class Meta:
         verbose_name = _('location')
         verbose_name_plural = _('locations')
@@ -287,3 +284,51 @@ class Vehicle(ModelBase):
     class Meta:
         verbose_name = _('vehicle')
         verbose_name_plural = _('vehicles')
+
+
+def get_state_number():
+    return get_next_value('state_number')
+
+
+class State(ModelBase):
+    number = models.PositiveIntegerField(verbose_name='number', primary_key=False, db_index=True,
+                                         default=get_state_number)
+    code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
+    description = models.CharField(max_length=100, verbose_name=_('description'))
+
+    class Meta:
+        verbose_name = _('state')
+        verbose_name_plural = _('state')
+
+
+def get_city_number():
+    return get_next_value('city_number')
+
+
+class City(ModelBase):
+    number = models.PositiveIntegerField(verbose_name='number', primary_key=False, db_index=True,
+                                         default=get_city_number)
+    code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
+    description = models.CharField(max_length=100, verbose_name=_('description'))
+    state = models.ForeignKey(State, verbose_name=_('state'), on_delete=models.PROTECT)
+
+    class Meta:
+        verbose_name = _('city')
+        verbose_name_plural = _('cities')
+
+
+def get_municipality_number():
+    return get_next_value('municipality_number')
+
+
+class Municipality(ModelBase):
+    number = models.PositiveIntegerField(verbose_name='number', primary_key=False, db_index=True,
+                                         default=get_municipality_number)
+    code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
+    description = models.CharField(max_length=100, verbose_name=_('description'))
+    city = models.ForeignKey(City, verbose_name=_('city'), on_delete=models.PROTECT)
+
+    class Meta:
+        verbose_name = _('municipality')
+        verbose_name_plural = _('municipalities')
+

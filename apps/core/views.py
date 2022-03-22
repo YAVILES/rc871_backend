@@ -13,7 +13,8 @@ from django_filters import rest_framework as filters
 from django.utils.translation import ugettext_lazy as _
 
 from apps.core.admin import BannerResource
-from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle
+from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
+    Municipality
 from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
     UseDefaultSerializer, PlanDefaultSerializer, CoverageDefaultSerializer, PremiumDefaultSerializer, \
     ModelDefaultSerializer, MarkDefaultSerializer, VehicleDefaultSerializer
@@ -398,6 +399,78 @@ class VehicleViewSet(ModelViewSet):
                 return Response(e, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": "the field parameter is mandatory"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+
+class StateFilter(filters.FilterSet):
+    class Meta:
+        model = State
+        fields = ['code', 'description', 'number']
+
+
+class StateViewSet(ModelViewSet):
+    queryset = State.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = StateFilter
+    serializer_class = StateDefaultSerializer
+    search_fields = ['code', 'description', 'number']
+    permission_classes = (AllowAny,)
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+
+class CityFilter(filters.FilterSet):
+    class Meta:
+        model = City
+        fields = ['code', 'description', 'number', 'state__description']
+
+
+class CityViewSet(ModelViewSet):
+    queryset = City.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = CityFilter
+    serializer_class = CityDefaultSerializer
+    search_fields = ['code', 'description', 'number', 'state__description']
+    permission_classes = (AllowAny,)
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+
+class MunicipalityFilter(filters.FilterSet):
+    class Meta:
+        model = Municipality
+        fields = ['code', 'description', 'number', 'city__state__description', 'city__description']
+
+
+class MunicipalityViewSet(ModelViewSet):
+    queryset = Municipality.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = MunicipalityFilter
+    serializer_class = MunicipalityDefaultSerializer
+    search_fields = ['code', 'description', 'number', 'city__state__description', 'city__description']
+    permission_classes = (AllowAny,)
 
     def paginate_queryset(self, queryset):
         """

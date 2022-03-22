@@ -4,7 +4,8 @@ from django.db import transaction
 from django_restql.mixins import DynamicFieldsMixin
 from rest_framework import serializers
 
-from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle
+from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
+    Municipality
 from apps.security.models import User
 from apps.security.serializers import UserDefaultSerializer
 
@@ -278,6 +279,7 @@ class VehicleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             return medical_certificate_url
         else:
             return None
+
     # serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     def create(self, validated_data):
@@ -295,4 +297,28 @@ class VehicleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
     class Meta:
         model = Vehicle
+        fields = serializers.ALL_FIELDS
+
+
+class StateDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    number = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = State
+        fields = serializers.ALL_FIELDS
+
+
+class CityDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    number = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = City
+        fields = serializers.ALL_FIELDS
+
+
+class MunicipalityDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    number = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Municipality
         fields = serializers.ALL_FIELDS
