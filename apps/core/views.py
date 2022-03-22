@@ -17,7 +17,8 @@ from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium,
     Municipality
 from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
     UseDefaultSerializer, PlanDefaultSerializer, CoverageDefaultSerializer, PremiumDefaultSerializer, \
-    ModelDefaultSerializer, MarkDefaultSerializer, VehicleDefaultSerializer
+    ModelDefaultSerializer, MarkDefaultSerializer, VehicleDefaultSerializer, MunicipalityDefaultSerializer, \
+    CityDefaultSerializer, StateDefaultSerializer
 from rc871_backend.utils.functions import format_headers_import
 
 
