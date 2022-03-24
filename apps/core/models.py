@@ -290,7 +290,7 @@ def get_state_number():
     return get_next_value('state_number')
 
 
-class State(ModelBase):
+class State(models.Model):
     number = models.PositiveIntegerField(verbose_name='number', primary_key=False, db_index=True,
                                          default=get_state_number)
     code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
