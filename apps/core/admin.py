@@ -14,6 +14,43 @@ class StateResource(ModelResource):
     class Meta:
         model = State
         exclude = ('id', 'created', 'updated',)
+        import_id_fields = ('description',)
+
+
+class CityResource(ModelResource):
+
+    def before_import_row(self, row, row_number=None, **kwargs):
+        state = row.get('state', None)
+
+        if not state:
+            raise ValidationError("El codigo del estado es obligatorio")
+        else:
+            row['state'] = State.objecs.get(number=state).id
+
+        return row
+
+    class Meta:
+        model = City
+        exclude = ('id', 'created', 'updated',)
+        import_id_fields = ('description', 'state')
+
+
+class MunicipalityResource(ModelResource):
+
+    def before_import_row(self, row, row_number=None, **kwargs):
+        city = row.get('city', None)
+
+        if not city:
+            raise ValidationError("El codigo de la ciudad es obligatorio")
+        else:
+            row['city'] = State.objecs.get(number=city).id
+
+        return row
+
+    class Meta:
+        model = Municipality
+        exclude = ('id', 'created', 'updated',)
+        import_id_fields = ('description', 'city')
 
 
 @admin.register(Banner)

@@ -293,7 +293,6 @@ def get_state_number():
 class State(ModelBase):
     number = models.PositiveIntegerField(verbose_name='number', primary_key=False, db_index=True,
                                          default=get_state_number)
-    code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
     description = models.CharField(max_length=100, verbose_name=_('description'))
 
     class Meta:
@@ -308,7 +307,6 @@ def get_city_number():
 class City(ModelBase):
     number = models.PositiveIntegerField(verbose_name='number', primary_key=False, db_index=True,
                                          default=get_city_number)
-    code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
     description = models.CharField(max_length=100, verbose_name=_('description'))
     state = models.ForeignKey(State, verbose_name=_('state'), on_delete=models.PROTECT)
 
@@ -324,7 +322,6 @@ def get_municipality_number():
 class Municipality(ModelBase):
     number = models.PositiveIntegerField(verbose_name='number', primary_key=False, db_index=True,
                                          default=get_municipality_number)
-    code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
     description = models.CharField(max_length=100, verbose_name=_('description'))
     city = models.ForeignKey(City, verbose_name=_('city'), on_delete=models.PROTECT)
 

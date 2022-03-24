@@ -414,7 +414,7 @@ class VehicleViewSet(ModelViewSet):
 class StateFilter(filters.FilterSet):
     class Meta:
         model = State
-        fields = ['code', 'description', 'number']
+        fields = ['description', 'number']
 
 
 class StateViewSet(ModelViewSet):
@@ -422,7 +422,7 @@ class StateViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = StateFilter
     serializer_class = StateDefaultSerializer
-    search_fields = ['code', 'description', 'number']
+    search_fields = ['description', 'number']
     permission_classes = (AllowAny,)
 
     def paginate_queryset(self, queryset):
@@ -498,7 +498,7 @@ class StateViewSet(ModelViewSet):
 class CityFilter(filters.FilterSet):
     class Meta:
         model = City
-        fields = ['code', 'description', 'number', 'state__description']
+        fields = ['description', 'number', 'state__description']
 
 
 class CityViewSet(ModelViewSet):
@@ -506,7 +506,7 @@ class CityViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = CityFilter
     serializer_class = CityDefaultSerializer
-    search_fields = ['code', 'description', 'number', 'state__description']
+    search_fields = ['description', 'number', 'state__description']
     permission_classes = (AllowAny,)
 
     def paginate_queryset(self, queryset):
@@ -518,11 +518,71 @@ class CityViewSet(ModelViewSet):
             return None
         return self.paginator.paginate_queryset(queryset, self.request, view=self)
 
+    @action(methods=['GET'], detail=False)
+    def export(self, request):
+        dataset = CityResource().export()
+        return Response(dataset.csv, status=status.HTTP_200_OK)
+
+    @action(methods=['POST'], detail=False)
+    def _import(self, request):
+        try:
+            resource = CityResource()
+            errors = []
+            invalids = []
+            if request.FILES:
+                file = request.FILES['file']
+                data_set = Dataset()
+                data_set.load(file.read())
+                data_set.headers = data_set.headers
+                result = resource.import_data(data_set, dry_run=True)  # Test the data import
+            else:
+                headers = request.data['headers']
+                data_set = tablib.Dataset(headers=headers)
+                for d in request.data['data']:
+                    data_set.append(d)
+                result = resource.import_data(data_set, dry_run=True)
+
+            if result.has_errors() or len(result.invalid_rows) > 0:
+                for row in result.invalid_rows:
+                    invalids.append(
+                        {
+                            "row": row.number + 1,
+                            "error": row.error,
+                            "error_dict": row.error_dict,
+                            "values": row.values
+                        }
+                    )
+
+                for row in result.row_errors():
+                    err = row[1]
+                    errors.append(
+                        {
+                            "errors": [e.error.__str__() for e in err],
+                            "values": err[0].row,
+                            "row": row[0]
+                        }
+                    )
+
+                return Response({
+                    "rows_error": errors,
+                    "invalid_rows": invalids,
+                    "totals": result.totals,
+                    "total_rows": result.total_rows,
+                }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                result = resource.import_data(data_set, dry_run=False)  # Actually import now
+                return Response({
+                    "totals": result.totals,
+                    "total_rows": result.total_rows,
+                }, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
 
 class MunicipalityFilter(filters.FilterSet):
     class Meta:
         model = Municipality
-        fields = ['code', 'description', 'number', 'city__state__description', 'city__description']
+        fields = ['description', 'number', 'city__state__description', 'city__description']
 
 
 class MunicipalityViewSet(ModelViewSet):
@@ -530,7 +590,7 @@ class MunicipalityViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = MunicipalityFilter
     serializer_class = MunicipalityDefaultSerializer
-    search_fields = ['code', 'description', 'number', 'city__state__description', 'city__description']
+    search_fields = ['description', 'number', 'city__state__description', 'city__description']
     permission_classes = (AllowAny,)
 
     def paginate_queryset(self, queryset):
@@ -541,3 +601,63 @@ class MunicipalityViewSet(ModelViewSet):
         if self.paginator is None or not_paginator:
             return None
         return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+    @action(methods=['GET'], detail=False)
+    def export(self, request):
+        dataset = MunicipalityResource().export()
+        return Response(dataset.csv, status=status.HTTP_200_OK)
+
+    @action(methods=['POST'], detail=False)
+    def _import(self, request):
+        try:
+            resource = MunicipalityResource()
+            errors = []
+            invalids = []
+            if request.FILES:
+                file = request.FILES['file']
+                data_set = Dataset()
+                data_set.load(file.read())
+                data_set.headers = data_set.headers
+                result = resource.import_data(data_set, dry_run=True)  # Test the data import
+            else:
+                headers = request.data['headers']
+                data_set = tablib.Dataset(headers=headers)
+                for d in request.data['data']:
+                    data_set.append(d)
+                result = resource.import_data(data_set, dry_run=True)
+
+            if result.has_errors() or len(result.invalid_rows) > 0:
+                for row in result.invalid_rows:
+                    invalids.append(
+                        {
+                            "row": row.number + 1,
+                            "error": row.error,
+                            "error_dict": row.error_dict,
+                            "values": row.values
+                        }
+                    )
+
+                for row in result.row_errors():
+                    err = row[1]
+                    errors.append(
+                        {
+                            "errors": [e.error.__str__() for e in err],
+                            "values": err[0].row,
+                            "row": row[0]
+                        }
+                    )
+
+                return Response({
+                    "rows_error": errors,
+                    "invalid_rows": invalids,
+                    "totals": result.totals,
+                    "total_rows": result.total_rows,
+                }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                result = resource.import_data(data_set, dry_run=False)  # Actually import now
+                return Response({
+                    "totals": result.totals,
+                    "total_rows": result.total_rows,
+                }, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
