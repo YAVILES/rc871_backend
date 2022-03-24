@@ -12,7 +12,7 @@ from tablib import Dataset
 from django_filters import rest_framework as filters
 from django.utils.translation import ugettext_lazy as _
 
-from apps.core.admin import BannerResource, StateResource
+from apps.core.admin import BannerResource, StateResource, CityResource, MunicipalityResource
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
     Municipality
 from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
@@ -498,7 +498,7 @@ class StateViewSet(ModelViewSet):
 class CityFilter(filters.FilterSet):
     class Meta:
         model = City
-        fields = ['description', 'number', 'state__description']
+        fields = ['description', 'number', 'state__description', 'state_id']
 
 
 class CityViewSet(ModelViewSet):
@@ -582,7 +582,7 @@ class CityViewSet(ModelViewSet):
 class MunicipalityFilter(filters.FilterSet):
     class Meta:
         model = Municipality
-        fields = ['description', 'number', 'city__state__description', 'city__description']
+        fields = ['description', 'number', 'city__state__description', 'city__description', 'city_id', 'city__state_id']
 
 
 class MunicipalityViewSet(ModelViewSet):

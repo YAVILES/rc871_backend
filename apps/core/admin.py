@@ -25,7 +25,7 @@ class CityResource(ModelResource):
         if not state:
             raise ValidationError("El codigo del estado es obligatorio")
         else:
-            row['state'] = State.objecs.get(number=state).id
+            row['state'] = State.objects.get(number=state).id
 
         return row
 
@@ -43,7 +43,7 @@ class MunicipalityResource(ModelResource):
         if not city:
             raise ValidationError("El codigo de la ciudad es obligatorio")
         else:
-            row['city'] = State.objecs.get(number=city).id
+            row['city'] = City.objects.get(number=city).id
 
         return row
 
