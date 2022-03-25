@@ -100,7 +100,7 @@ class User(AbstractBaseUser, ModelBase):
     password = models.CharField(max_length=128, verbose_name=_('password'))
     direction = models.CharField(null=True, max_length=255, verbose_name=_('direction'))
     phone = models.CharField(null=True, max_length=20, verbose_name=_('phone'))
-    telephone = models.CharField(null=True, max_length=20, verbose_name=_('telephone'))
+    telephone = models.CharField(null=True, blank=True, max_length=20, verbose_name=_('telephone'))
     point = geo_models.PointField(verbose_name=_('point'), null=True)
     photo = models.ImageField(upload_to='photos/', null=True)
     is_superuser = models.BooleanField(
