@@ -9,7 +9,9 @@ from drf_extra_fields import geo_fields
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from apps.security.models import User, Workflow, Role, BranchOffice
+from apps.core.models import Municipality, BranchOffice
+from apps.security.models import User, Workflow, Role
+from apps.core.serializers import MunicipalityDefaultSerializer
 
 
 class WorkflowDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -162,6 +164,10 @@ class UserDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         queryset=BranchOffice.objects.all(), required=True
     )
     branch_office_display = BranchOfficeUserSerializer(read_only=True, source='branch_office')
+    municipality = serializers.PrimaryKeyRelatedField(
+        queryset=Municipality.objects.all(), required=True
+    )
+    municipality_display = MunicipalityDefaultSerializer(read_only=True, source='branch_office')
 
     class Meta:
         model = User
