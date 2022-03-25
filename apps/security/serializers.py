@@ -11,7 +11,14 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from apps.core.models import Municipality, BranchOffice
 from apps.security.models import User, Workflow, Role
-from apps.core.serializers import MunicipalityDefaultSerializer
+
+
+class MunicipalityUserSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    number = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Municipality
+        fields = serializers.ALL_FIELDS
 
 
 class WorkflowDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -167,7 +174,7 @@ class UserDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     municipality = serializers.PrimaryKeyRelatedField(
         queryset=Municipality.objects.all(), required=True
     )
-    municipality_display = MunicipalityDefaultSerializer(read_only=True, source='branch_office')
+    municipality_display = MunicipalityUserSerializer(read_only=True, source='branch_office')
 
     class Meta:
         model = User
