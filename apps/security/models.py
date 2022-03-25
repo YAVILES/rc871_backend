@@ -7,7 +7,7 @@ from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
-from apps.core.models import ModelBase, BranchOffice
+from apps.core.models import ModelBase, BranchOffice, Municipality
 
 
 class Workflow(ModelBase):
@@ -133,6 +133,8 @@ class User(AbstractBaseUser, ModelBase):
     is_staff = models.BooleanField(verbose_name=_('is staff'), default=False)
     branch_office = models.ForeignKey(BranchOffice, blank=True, null=True, verbose_name=_('branch_office'),
                                       on_delete=models.PROTECT)
+    municipality = models.ForeignKey(Municipality, blank=True, null=True, verbose_name=_('municipality'),
+                                     on_delete=models.PROTECT)
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'name', 'last_name', 'phone']
