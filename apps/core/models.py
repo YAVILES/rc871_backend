@@ -269,6 +269,12 @@ class Vehicle(ModelBase):
         verbose_name=_('owner medical certificate'), upload_to=owner_medical_certificate_image_path, null=True,
         help_text="Certificado médico del dueño"
     )
+    owner_phones = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('owner phones'),
+                                    help_text="Telefonos del dueño")
+    owner_address = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('owner address'),
+                                     help_text="Dirección del dueño")
+    owner_email = models.EmailField(max_length=100, blank=True, null=True, verbose_name=_('owner email'),
+                                    help_text="Correo del dueño")
     taker = models.ForeignKey('security.User', verbose_name=_('taker'), on_delete=models.PROTECT)
     registration_certificate = models.ImageField(
         verbose_name=_('registration certificate'), upload_to=registration_certificate_image_path, null=True,
