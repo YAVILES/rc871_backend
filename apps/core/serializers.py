@@ -217,15 +217,6 @@ class VehicleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         else:
             return None
 
-    owner_rif = serializers.ImageField(required=False)
-
-    def get_owner_rif(self, obj: 'Vehicle'):
-        if obj.owner_rif and hasattr(obj.owner_rif, 'url'):
-            owner_rif_url = obj.owner_rif.url
-            return owner_rif_url
-        else:
-            return None
-
     owner_license = serializers.ImageField(required=False)
 
     def get_owner_license(self, obj: 'Vehicle'):
