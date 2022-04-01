@@ -6,6 +6,7 @@ from django.contrib.gis.db import models as geo_models
 from django.db import models, IntegrityError
 from django.utils.translation import ugettext_lazy as _
 
+
 MONDAY = 0
 TUESDAY = 1
 WEDNESDAY = 2
@@ -198,20 +199,20 @@ class Model(ModelBase):
         verbose_name_plural = _('models')
 
 
-def circulation_card_image_path(vehicle: 'Vehicle', file_name):
-    return 'img/vehicle/circulation_card/{0}/{1}'.format(vehicle.license_plate, file_name)
+def medical_certificate_image_path(user: 'security.User', file_name):
+    return 'img/user/medical_certificate/{0}/{1}'.format(user.username, file_name)
+
+
+def holder_s_license_image_path(user: 'security.User', file_name):
+    return 'img/user/holder_s_license/{0}/{1}'.format(user.username, file_name)
+
+
+def circulation_card_image_path(user: 'security.User', file_name):
+    return 'img/user/circulation_card/{0}/{1}'.format(user.username, file_name)
 
 
 def registration_certificate_image_path(vehicle: 'Vehicle', file_name):
     return 'img/vehicle/registration_certificate/{0}/{1}'.format(vehicle.license_plate, file_name)
-
-
-def holder_s_license_image_path(vehicle: 'Vehicle', file_name):
-    return 'img/vehicle/holder_s_license/{0}/{1}'.format(vehicle.license_plate, file_name)
-
-
-def medical_certificate_image_path(vehicle: 'Vehicle', file_name):
-    return 'img/vehicle/medical_certificate/{0}/{1}'.format(vehicle.license_plate, file_name)
 
 
 def owner_rif_image_path(vehicle: 'Vehicle', file_name):
@@ -265,19 +266,9 @@ class Vehicle(ModelBase):
         help_text="Certificado médico del dueño"
     )
     taker = models.ForeignKey('security.User', verbose_name=_('taker'), on_delete=models.PROTECT)
-    circulation_card = models.ImageField(verbose_name=_('circulation card'), upload_to=circulation_card_image_path,
-                                         null=True, help_text="Carnet de circulación")
     registration_certificate = models.ImageField(
         verbose_name=_('registration certificate'), upload_to=registration_certificate_image_path, null=True,
         help_text="Certificado de registro de vehículo (Tiutlo)"
-    )
-    holder_s_license = models.ImageField(
-        verbose_name=_('holder\'s license'), upload_to=holder_s_license_image_path, null=True,
-        help_text="Licencia del tomador"
-    )
-    medical_certificate = models.ImageField(
-        verbose_name=_('medical certificate'), upload_to=medical_certificate_image_path, null=True,
-        help_text="Certificado médico"
     )
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
 
@@ -329,3 +320,64 @@ class Municipality(ModelBase):
         verbose_name = _('municipality')
         verbose_name_plural = _('municipalities')
 
+
+def get_policy_number():
+    return get_next_value('get_policy_number')
+
+
+class Policy(ModelBase):
+    OUTSTANDING = 0
+    PENDING_APPROVAL = 1  # pendiente de pago
+    PASSED = 2  # aprobado
+    EXPIRED = 3
+    REJECTED = 4
+
+    STATUSES = (
+        (OUTSTANDING, _('pendiente de pago')),
+        (PENDING_APPROVAL, _('pendiente de aprobación')),
+        (PASSED, _('aprobado')),
+        (EXPIRED, _('vencido')),
+        (REJECTED, _('rechazado')),
+    )
+
+    RCV = 0
+    TYPES = (
+        (RCV, _('RCV')),
+    )
+
+    NEW = 0
+    ACTIONS = (
+        (NEW, _('Nueva')),
+    )
+
+    number = models.PositiveIntegerField(verbose_name='number', primary_key=False, db_index=True,
+                                         default=get_policy_number)
+    taker = models.ForeignKey('security.User', verbose_name=_('taker'), on_delete=models.PROTECT)
+    insured = models.ForeignKey('security.User', related_name="policy_insured", verbose_name=_('insured'),
+                                on_delete=models.PROTECT)
+    adviser = models.ForeignKey('security.User', related_name="policy_adviser", verbose_name=_('adviser'),
+                                on_delete=models.PROTECT)
+    vehicle = models.ForeignKey(Vehicle, verbose_name=_('vehicle'), on_delete=models.PROTECT)
+    type = models.SmallIntegerField(choices=TYPES, default=RCV, verbose_name=_('type'))
+    action = models.SmallIntegerField(choices=ACTIONS, default=NEW, verbose_name=_('action'))
+    due_date = models.DateTimeField(verbose_name=_('due_date'), help_text="Fecha de vencimiento")
+    status = models.SmallIntegerField(choices=STATUSES, default=OUTSTANDING, verbose_name=_('status'))
+
+    class Meta:
+        verbose_name = _('policy')
+        verbose_name_plural = _('policies')
+
+
+def get_policy_coverage_number():
+    return get_next_value('get_policy_coverage_number')
+
+
+class PolicyCoverage(ModelBase):
+    number = models.PositiveIntegerField(verbose_name='number', primary_key=False, db_index=True,
+                                         default=get_policy_coverage_number)
+    policy = models.ForeignKey(Policy, related_name='items', verbose_name=_('policy'), blank=True, null=True,
+                               on_delete=models.PROTECT)
+    coverage = models.ForeignKey(Coverage, verbose_name=_('coverage'), blank=True, null=True, on_delete=models.PROTECT)
+    insured_amount = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('price'), default=0.0)
+    cost = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('cost'), default=0.0)
+    change_factor = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('change factor'), default=0.0)

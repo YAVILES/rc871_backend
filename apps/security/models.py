@@ -36,6 +36,18 @@ class Role(models.Model):
         return self.name
 
 
+def medical_certificate_image_path(user: 'security.User', file_name):
+    return 'img/user/medical_certificate/{0}/{1}'.format(user.username, file_name)
+
+
+def holder_s_license_image_path(user: 'security.User', file_name):
+    return 'img/user/holder_s_license/{0}/{1}'.format(user.username, file_name)
+
+
+def circulation_card_image_path(user: 'security.User', file_name):
+    return 'img/user/circulation_card/{0}/{1}'.format(user.username, file_name)
+
+
 class UserManager(BaseUserManager):
     def system(self):
         user, _ = self.get_or_create(
@@ -103,6 +115,16 @@ class User(AbstractBaseUser, ModelBase):
     telephone = models.CharField(null=True, blank=True, max_length=20, verbose_name=_('telephone'))
     point = geo_models.PointField(verbose_name=_('point'), null=True)
     photo = models.ImageField(upload_to='photos/', null=True)
+    holder_s_license = models.ImageField(
+        verbose_name=_('holder\'s license'), upload_to=holder_s_license_image_path, null=True,
+        help_text="Licencia del tomador"
+    )
+    medical_certificate = models.ImageField(
+        verbose_name=_('medical certificate'), upload_to=medical_certificate_image_path, null=True,
+        help_text="Certificado médico"
+    )
+    circulation_card = models.ImageField(verbose_name=_('circulation card'), upload_to=circulation_card_image_path,
+                                         null=True, help_text="Carnet de circulación")
     is_superuser = models.BooleanField(
         _('is superuser'),
         default=False,
