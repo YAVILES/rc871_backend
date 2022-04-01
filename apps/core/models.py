@@ -251,12 +251,16 @@ class Vehicle(ModelBase):
                                   help_text="Nombre del dueño")
     owner_last_name = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('owner lastname'),
                                        help_text="Apellido del dueño")
-    owner_identity_card = models.ImageField(
+    owner_identity_card = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('owner_identity_card'),
+                                  help_text="Cedula del dueño")
+    owner_rif = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('owner_identity_card'),
+                                  help_text="Rif del dueño")
+    owner_identity_card_image = models.ImageField(
         verbose_name=_('owner identity card'), upload_to=owner_identity_card_image_path, null=True,
-        help_text="Cédula de identidad del dueño"
+        help_text="Cédula de identidad del dueño Imagen"
     )
-    owner_rif = models.ImageField(verbose_name=_('owner_rif'), upload_to=owner_rif_image_path, null=True,
-                                  help_text="RIF del dueño")
+    owner_rif_image = models.ImageField(verbose_name=_('owner_rif'), upload_to=owner_rif_image_path, null=True,
+                                        help_text="RIF del dueño Imagen")
     owner_license = models.ImageField(
         verbose_name=_('owner license'), upload_to=owner_license_image_path, null=True,
         help_text="Licencia del dueño"
