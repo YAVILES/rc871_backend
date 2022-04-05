@@ -1,12 +1,13 @@
 # coding=utf-8
+from constance.backends.database.models import Constance
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django_restql.mixins import DynamicFieldsMixin
 from rest_framework import serializers
-
+from rest_framework.exceptions import ValidationError
 
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
-    Municipality
+    Municipality, Policy, PolicyCoverage, HistoricalChangeRate
 from apps.security.models import User
 from apps.security.serializers import UserDefaultSerializer
 
@@ -308,4 +309,103 @@ class MunicipalityDefaultSerializer(DynamicFieldsMixin, serializers.ModelSeriali
 
     class Meta:
         model = Municipality
+        fields = serializers.ALL_FIELDS
+
+
+class PolicyCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    number = serializers.IntegerField()
+    insured_amount = serializers.DecimalField(max_digits=50, decimal_places=2)
+    cost = serializers.DecimalField(max_digits=50, decimal_places=2)
+    change_factor = serializers.DecimalField(max_digits=50, decimal_places=2)
+
+    class Meta:
+        model = PolicyCoverage
+        exclude = ('created', 'updated',)
+
+
+class PolicyCoverageCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PolicyCoverage
+        fields = ('coverage',)
+
+
+class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    taker = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    taker_display = UserDefaultSerializer(read_only=True, source='taker')
+    adviser = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        write_only=True,
+        required=False
+    )
+    adviser_display = UserDefaultSerializer(read_only=True, source='adviser')
+    vehicle = serializers.PrimaryKeyRelatedField(
+        queryset=Vehicle.objects.all(),
+        write_only=True,
+    )
+    vehicle_display = VehicleDefaultSerializer(read_only=True, source='vehicle')
+    plan = serializers.PrimaryKeyRelatedField(
+        queryset=Plan.objects.all(),
+        write_only=True,
+    )
+    plan_display = PlanDefaultSerializer(read_only=True, source='plan')
+    items = PolicyCoverageSerializer(many=True, read_only=True)
+    coverage = serializers.PrimaryKeyRelatedField(
+        queryset=Coverage.objects.all(),
+        write_only=True,
+        many=True
+    )
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    
+    def create(self, validated_data):
+        try:
+            with transaction.atomic():
+                request = self.context.get('request')# Se pusa si el usuario es vendedor
+                user = request.user
+                plan = validated_data.get('plan')
+                coverage = validated_data.pop('coverage')
+                vehicle = validated_data.get('vehicle')
+                adviser = validated_data.pop('adviser', None)
+                if adviser is None:
+                    adviser = User.objects.web()
+
+                use = vehicle.use
+                change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
+
+                items = []
+
+                policy = Policy.objects.create(
+                    adviser=adviser,
+                    **validated_data
+                )
+
+                for item in coverage:
+                    premium = Premium.objects.get(plan_id=plan.id, use_id=use.id, coverage_id=item.id)
+                    items.append(
+                        {
+                            'coverage': item,
+                            'insured_amount': premium.insured_amount,
+                            'cost': premium.cost,
+                            'change_factor': 0.0 if change_factor is None else float(change_factor)
+                        }
+                    )
+
+                _items = [
+                    PolicyCoverage(policy_id=policy.id, **item) for item in items
+                ]
+
+                PolicyCoverage.objects.bulk_create(_items)
+
+                return policy
+
+        except ValidationError as error:
+            raise serializers.ValidationError(detail={"error": error.detail})
+
+    class Meta:
+        model = Policy
+        fields = serializers.ALL_FIELDS
+
+
+class HistoricalChangeRateDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalChangeRate
         fields = serializers.ALL_FIELDS

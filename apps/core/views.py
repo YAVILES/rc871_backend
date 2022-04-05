@@ -7,19 +7,19 @@ from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from tablib import Dataset
 from django_filters import rest_framework as filters
 from django.utils.translation import ugettext_lazy as _
 
 from apps.core.admin import BannerResource, StateResource, CityResource, MunicipalityResource, MarkResource, \
-    ModelVehicleResource
+    ModelVehicleResource, HistoricalChangeRateResource
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
-    Municipality
+    Municipality, Policy, HistoricalChangeRate
 from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
     UseDefaultSerializer, PlanDefaultSerializer, CoverageDefaultSerializer, PremiumDefaultSerializer, \
     ModelDefaultSerializer, MarkDefaultSerializer, VehicleDefaultSerializer, MunicipalityDefaultSerializer, \
-    CityDefaultSerializer, StateDefaultSerializer
+    CityDefaultSerializer, StateDefaultSerializer, PolicyDefaultSerializer, HistoricalChangeRateDefaultSerializer
 from rc871_backend.utils.functions import format_headers_import
 
 
@@ -858,6 +858,119 @@ class MunicipalityViewSet(ModelViewSet):
                 }, status=status.HTTP_400_BAD_REQUEST)
             else:
                 result = resource.import_data(data_set, dry_run=False)  # Actually import now
+                return Response({
+                    "totals": result.totals,
+                    "total_rows": result.total_rows,
+                }, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PolicyFilter(filters.FilterSet):
+    class Meta:
+        model = Policy
+        fields = ['number', 'taker__name', 'adviser__name', 'vehicle__model__mark__description',
+                  'vehicle__model__description']
+
+
+class PolicyViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet):
+    queryset = Policy.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = PolicyFilter
+    serializer_class = PolicyDefaultSerializer
+    search_fields = ['number', 'taker__name', 'adviser__name', 'vehicle__model__mark__description',
+                     'vehicle__model__description']
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+
+class HistoricalChangeRateFilter(filters.FilterSet):
+    min_valid_from = filters.DateFilter(field_name="valid_from", lookup_expr='gte')
+    max_valid_from = filters.DateFilter(field_name="valid_from", lookup_expr='lte')
+    min_valid_until = filters.DateFilter(field_name="valid_until", lookup_expr='gte')
+    max_valid_until = filters.DateFilter(field_name="valid_until", lookup_expr='lte')
+    min_rate = filters.NumberFilter(field_name="rate", lookup_expr='gte')
+    max_rate = filters.NumberFilter(field_name="rate", lookup_expr='lte')
+
+    class Meta:
+        model = HistoricalChangeRate
+        fields = ['rate', 'min_valid_from', 'max_valid_from', 'min_valid_until', 'max_valid_until']
+
+
+class HistoricalChangeRateViewSet(ModelViewSet):
+    queryset = HistoricalChangeRate.objects.all().order_by('-valid_from')
+    serializer_class = HistoricalChangeRateDefaultSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = HistoricalChangeRateFilter
+    search_fields = ['rate', 'valid_from', 'valid_until']
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+
+        if not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+    @action(methods=['POST'], detail=False)
+    def _import(self, request):
+        try:
+            resource = HistoricalChangeRateResource()
+            errors = []
+            invalids = []
+            if request.FILES:
+                file = request.FILES['file']
+                data_set = Dataset()
+                data_set.load(file.read())
+                data_set.headers = format_headers_import(data_set.headers)
+                result = resource.import_data(
+                    data_set, dry_run=True)  # Test the data import
+            else:
+                headers = request.data['headers']
+                data_set = tablib.Dataset(headers=headers)
+                for d in request.data['data']:
+                    data_set.append(d)
+                result = resource.import_data(data_set, dry_run=True)
+
+            if result.has_errors() or len(result.invalid_rows) > 0:
+                for row in result.invalid_rows:
+                    invalids.append(
+                        {
+                            "row": row.number + 1,
+                            "error": row.error,
+                            "error_dict": row.error_dict,
+                            "values": row.values
+                        }
+                    )
+
+                for row in result.row_errors():
+                    err = row[1]
+                    errors.append(
+                        {
+                            "errors": [e.error.__str__() for e in err],
+                            "values": err[0].row,
+                            "row": row[0]
+                        }
+                    )
+
+                return Response({
+                    "rows_error": errors,
+                    "invalid_rows": invalids,
+                    "totals": result.totals,
+                    "total_rows": result.total_rows,
+                }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                result = resource.import_data(
+                    data_set, dry_run=False)  # Actually import now
                 return Response({
                     "totals": result.totals,
                     "total_rows": result.total_rows,

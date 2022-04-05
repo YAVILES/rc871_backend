@@ -1,11 +1,15 @@
 import uuid
+from datetime import datetime
 from os import remove
 from os import path
+
+from constance.backends.database.models import Constance
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.signals import post_save
 from sequences import get_next_value
 from django.contrib.gis.db import models as geo_models
 from django.db import models, IntegrityError
 from django.utils.translation import ugettext_lazy as _
-
 
 MONDAY = 0
 TUESDAY = 1
@@ -179,7 +183,8 @@ class Premium(ModelBase):
 
 
 class Mark(ModelBase):
-    description = models.CharField(max_length=255, blank=True, unique=True, db_index=True, verbose_name=_('description'))
+    description = models.CharField(max_length=255, blank=True, unique=True, db_index=True,
+                                   verbose_name=_('description'))
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
 
     class Meta:
@@ -363,7 +368,8 @@ class Policy(ModelBase):
     vehicle = models.ForeignKey(Vehicle, verbose_name=_('vehicle'), on_delete=models.PROTECT)
     type = models.SmallIntegerField(choices=TYPES, default=RCV, verbose_name=_('type'))
     action = models.SmallIntegerField(choices=ACTIONS, default=NEW, verbose_name=_('action'))
-    due_date = models.DateTimeField(verbose_name=_('due_date'), help_text="Fecha de vencimiento")
+    due_date = models.DateTimeField(verbose_name=_('due_date'), null=True, help_text="Fecha de vencimiento")
+    plan = models.ForeignKey(Plan, verbose_name=_('plan'), null=True, on_delete=models.PROTECT)
     status = models.SmallIntegerField(choices=STATUSES, default=OUTSTANDING, verbose_name=_('status'))
 
     class Meta:
@@ -384,3 +390,34 @@ class PolicyCoverage(ModelBase):
     insured_amount = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('price'), default=0.0)
     cost = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('cost'), default=0.0)
     change_factor = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('change factor'), default=0.0)
+
+
+class HistoricalChangeRate(ModelBase):
+    valid_from = models.DateField(verbose_name="valid_from", null=False, blank=True)
+    valid_until = models.DateField(verbose_name="valid_until", null=False, blank=True)
+    rate = models.FloatField(verbose_name="rate", default=0)
+    last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
+
+    class Meta:
+        verbose_name = _('historical change rate')
+        verbose_name_plural = _('historical change rates')
+        ordering = ['valid_from']
+
+
+def update_change_rate(sender, instance: HistoricalChangeRate, **kwargs):
+    using = kwargs['using']
+    created = kwargs['created']
+    today = datetime.today().date()
+    if instance.valid_from <= today <= instance.valid_until:
+        try:
+            change_factor = Constance.objects.get(key="CHANGE_FACTOR")
+            change_factor.value = float(instance.rate)
+            change_factor.save(update_fields=['value'])
+        except ObjectDoesNotExist:
+            Constance.objects.create(
+                key="CHANGE_FACTOR",
+                value=float(instance.rate)
+            )
+
+
+post_save.connect(update_change_rate, sender=HistoricalChangeRate)
