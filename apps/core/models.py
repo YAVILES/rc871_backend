@@ -214,6 +214,10 @@ def circulation_card_image_path(user: 'security.User', file_name):
     return 'img/user/circulation_card/{0}/{1}'.format(user.username, file_name)
 
 
+def owner_circulation_card_image_path(vehicle: 'Vehicle', file_name):
+    return 'img/vehicle/circulation_card/{0}/{1}'.format(vehicle.license_plate, file_name)
+
+
 def registration_certificate_image_path(vehicle: 'Vehicle', file_name):
     return 'img/vehicle/registration_certificate/{0}/{1}'.format(vehicle.license_plate, file_name)
 
@@ -268,6 +272,10 @@ class Vehicle(ModelBase):
     owner_medical_certificate = models.ImageField(
         verbose_name=_('owner medical certificate'), upload_to=owner_medical_certificate_image_path, null=True,
         help_text="Certificado médico del dueño"
+    )
+    owner_circulation_card = models.ImageField(
+        verbose_name=_('owner circulation card'), upload_to=owner_circulation_card_image_path, null=True,
+        help_text="Carnet de circulación del dueño"
     )
     owner_phones = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('owner phones'),
                                     help_text="Telefonos del dueño")

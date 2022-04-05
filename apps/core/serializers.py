@@ -207,16 +207,16 @@ class VehicleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     transmission_display = serializers.CharField(source='get_transmission_display', read_only=True)
     owner_name = serializers.CharField()
     owner_last_name = serializers.CharField()
-    owner_identity_card = serializers.ImageField(required=False)
+    owner_identity_card_image = serializers.ImageField(required=False)
 
-    def get_owner_identity_card(self, obj: 'Vehicle'):
-        if obj.owner_identity_card and hasattr(obj.owner_identity_card, 'url'):
-            owner_identity_card_url = obj.owner_identity_card.url
+    def get_owner_identity_card_image(self, obj: 'Vehicle'):
+        if obj.owner_identity_card_image and hasattr(obj.owner_identity_card_image, 'url'):
+            owner_identity_card_url = obj.owner_identity_card_image.url
             return owner_identity_card_url
         else:
             return None
 
-    owner_license = serializers.ImageField(required=False)
+    owner_license = serializers.ImageField(required=True)
 
     def get_owner_license(self, obj: 'Vehicle'):
         if obj.owner_license and hasattr(obj.owner_license, 'url'):
@@ -234,30 +234,12 @@ class VehicleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         else:
             return None
 
-    circulation_card = serializers.ImageField(required=False)
+    owner_circulation_card = serializers.ImageField(required=True)
 
-    def get_circulation_card(self, obj: 'Vehicle'):
-        if obj.circulation_card and hasattr(obj.circulation_card, 'url'):
-            circulation_card_url = obj.circulation_card.url
+    def get_owner_circulation_card(self, obj: 'Vehicle'):
+        if obj.owner_circulation_card and hasattr(obj.owner_circulation_card, 'url'):
+            circulation_card_url = obj.owner_circulation_card.url
             return circulation_card_url
-        else:
-            return None
-
-    holder_s_license = serializers.ImageField(required=False)
-
-    def get_holder_s_license(self, obj: 'Vehicle'):
-        if obj.holder_s_license and hasattr(obj.holder_s_license, 'url'):
-            holder_s_license_url = obj.holder_s_license.url
-            return holder_s_license_url
-        else:
-            return None
-
-    medical_certificate = serializers.ImageField(required=False)
-
-    def get_medical_certificate(self, obj: 'Vehicle'):
-        if obj.medical_certificate and hasattr(obj.medical_certificate, 'url'):
-            medical_certificate_url = obj.medical_certificate.url
-            return medical_certificate_url
         else:
             return None
 
