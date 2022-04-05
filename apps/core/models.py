@@ -137,7 +137,7 @@ class Plan(ModelBase):
     def coverage(self):
         query = self.coverage_set.filter(default=False, is_active=True)
         query_default = Coverage.objects.filter(default=True, is_active=True)
-        return query_default.union(query).order_by('default', 'number')
+        return query_default.union(query).order_by('default', 'created',)
 
     def __str__(self):
         return self.description
