@@ -4,6 +4,7 @@ from django.db import transaction
 from django_restql.mixins import DynamicFieldsMixin
 from rest_framework import serializers
 
+
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
     Municipality
 from apps.security.models import User

@@ -1,7 +1,8 @@
 from django.contrib import admin
+from django.core.exceptions import ValidationError
 from import_export.resources import ModelResource
 
-from apps.core.models import Banner, State, City, Municipality
+from apps.core.models import Banner, State, City, Municipality, Mark, Model
 
 
 class BannerResource(ModelResource):
@@ -51,6 +52,32 @@ class MunicipalityResource(ModelResource):
         model = Municipality
         exclude = ('id', 'created', 'updated',)
         import_id_fields = ('description', 'city')
+
+
+class MarkResource(ModelResource):
+
+    class Meta:
+        model = Mark
+        exclude = ('id', 'created', 'updated',)
+        import_id_fields = ('code',)
+
+
+class ModelVehicleResource(ModelResource):
+
+    def before_import_row(self, row, row_number=None, **kwargs):
+        mark = row.get('mark', None)
+
+        if not mark:
+            raise ValidationError("La marca es obligatoria")
+        else:
+            row['city'] = City.objects.get_or_created(description=mark).id
+
+        return row
+
+    class Meta:
+        model = Model
+        exclude = ('id', 'created', 'updated',)
+        import_id_fields = ('code', 'mark',)
 
 
 @admin.register(Banner)
