@@ -135,9 +135,9 @@ class Plan(ModelBase):
 
     @property
     def coverage(self):
-        query = self.coverage_set.all()
-        query_default = Coverage.objects.filter(default=True)
-        return query_default.union(query)
+        query = self.coverage_set.filter(default=False, is_active=True)
+        query_default = Coverage.objects.filter(default=True, is_active=True)
+        return query_default.union(query).order_by('default', 'number')
 
     def __str__(self):
         return self.description
@@ -247,8 +247,9 @@ class Vehicle(ModelBase):
         (AUTOMATIC, _('Automática'))
     )
     model = models.ForeignKey(Model, verbose_name=_('model'), on_delete=models.PROTECT)
-    serial_bodywork = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('serial bodywork'))
-    serial_engine = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('serial engine'))
+    serial_bodywork = models.CharField(max_length=50, blank=True, null=True, unique=True,
+                                       verbose_name=_('serial bodywork'))
+    serial_engine = models.CharField(max_length=50, blank=True, null=True, unique=True, verbose_name=_('serial engine'))
     license_plate = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('license plate'))
     stalls = models.IntegerField(verbose_name='stalls', default=4)
     color = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('color'))

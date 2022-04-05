@@ -3,6 +3,7 @@ from constance.backends.database.models import Constance
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django_restql.mixins import DynamicFieldsMixin
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -119,6 +120,15 @@ class CoveragePlanSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
     class Meta:
         model = Coverage
+        fields = serializers.ALL_FIELDS
+
+
+class PlanForUseSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    code = serializers.CharField()
+    description = serializers.CharField()
+
+    class Meta:
+        model = Plan
         fields = serializers.ALL_FIELDS
 
 

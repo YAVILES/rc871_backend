@@ -106,7 +106,7 @@ class User(AbstractBaseUser, ModelBase):
     username = models.CharField(max_length=50, verbose_name=_('username'), null=True, unique=True)
     email = models.EmailField(verbose_name=_('email'))
     email_alternative = models.EmailField(null=True, verbose_name=_('email_alternative'))
-    identification_number = models.CharField(max_length=50, verbose_name=_('identification_number'), null=True)
+    identification_number = models.CharField(max_length=50,  unique=True, verbose_name=_('identification_number'), null=True)
     name = models.CharField(max_length=255, verbose_name=_('name'), null=True)
     last_name = models.CharField(max_length=50, verbose_name=_('last name'))
     password = models.CharField(max_length=128, verbose_name=_('password'))
