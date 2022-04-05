@@ -195,10 +195,7 @@ class VehicleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         required=True
     )
     model_display = ModelDefaultSerializer(read_only=True, source='model')
-    taker = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(),
-        required=False
-    )
+    taker = serializers.HiddenField(default=serializers.CurrentUserDefault())
     taker_display = UserDefaultSerializer(read_only=True, source='taker')
     serial_bodywork = serializers.CharField()
     serial_engine = serializers.CharField()
@@ -271,8 +268,6 @@ class VehicleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             return medical_certificate_url
         else:
             return None
-
-    # serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     def create(self, validated_data):
         try:
