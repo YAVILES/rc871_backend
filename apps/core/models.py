@@ -179,8 +179,7 @@ class Premium(ModelBase):
 
 
 class Mark(ModelBase):
-    code = models.CharField(max_length=50, blank=True, verbose_name=_('code'))
-    description = models.CharField(max_length=255, blank=True, verbose_name=_('description'))
+    description = models.CharField(max_length=255, blank=True, unique=True, db_index=True, verbose_name=_('description'))
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
 
     class Meta:
@@ -190,7 +189,6 @@ class Mark(ModelBase):
 
 class Model(ModelBase):
     mark = models.ForeignKey(Mark, verbose_name=_('mark'), on_delete=models.PROTECT)
-    code = models.CharField(max_length=50, blank=True, verbose_name=_('code'))
     description = models.CharField(max_length=255, blank=True, verbose_name=_('description'))
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
 
@@ -245,6 +243,7 @@ class Vehicle(ModelBase):
     license_plate = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('license plate'))
     stalls = models.IntegerField(verbose_name='stalls', default=4)
     color = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('color'))
+    year = models.CharField(max_length=5, null=True, blank=True)
     use = models.ForeignKey(Use, verbose_name=_('use'), on_delete=models.PROTECT)
     transmission = models.SmallIntegerField(choices=TRANSMISSIONS, default=SYNCHRONOUS, verbose_name=_('transmission'))
     owner_name = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('owner name'),
@@ -252,7 +251,7 @@ class Vehicle(ModelBase):
     owner_last_name = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('owner lastname'),
                                        help_text="Apellido del dueño")
     owner_identity_card = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('owner_identity_card'),
-                                  help_text="Cedula del dueño")
+                                           help_text="Cedula del dueño")
     owner_identity_card_image = models.ImageField(
         verbose_name=_('owner identity card'), upload_to=owner_identity_card_image_path, null=True,
         help_text="Cédula de identidad del dueño Imagen"
@@ -359,8 +358,6 @@ class Policy(ModelBase):
     number = models.PositiveIntegerField(verbose_name='number', primary_key=False, db_index=True,
                                          default=get_policy_number)
     taker = models.ForeignKey('security.User', verbose_name=_('taker'), on_delete=models.PROTECT)
-    insured = models.ForeignKey('security.User', related_name="policy_insured", verbose_name=_('insured'),
-                                on_delete=models.PROTECT)
     adviser = models.ForeignKey('security.User', related_name="policy_adviser", verbose_name=_('adviser'),
                                 on_delete=models.PROTECT)
     vehicle = models.ForeignKey(Vehicle, verbose_name=_('vehicle'), on_delete=models.PROTECT)

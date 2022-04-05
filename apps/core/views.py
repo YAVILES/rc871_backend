@@ -275,7 +275,7 @@ class PremiumViewSet(ModelViewSet):
 class MarkFilter(filters.FilterSet):
     class Meta:
         model = Mark
-        fields = ['code', 'description']
+        fields = ['description']
 
 
 class MarkViewSet(ModelViewSet):
@@ -283,7 +283,7 @@ class MarkViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = MarkFilter
     serializer_class = MarkDefaultSerializer
-    search_fields = ['code', 'description']
+    search_fields = ['description']
     permission_classes = (AllowAny,)
 
     def paginate_queryset(self, queryset):
@@ -354,7 +354,7 @@ class MarkViewSet(ModelViewSet):
 class ModelFilter(filters.FilterSet):
     class Meta:
         model = Model
-        fields = ['code', 'mark', 'description', 'mark__description']
+        fields = ['mark', 'description', 'mark__description']
 
 
 class ModelViewSet(ModelViewSet):
@@ -362,7 +362,7 @@ class ModelViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = ModelFilter
     serializer_class = ModelDefaultSerializer
-    search_fields = ['code', 'mark', 'description', 'mark__description']
+    search_fields = ['mark', 'description', 'mark__description']
     permission_classes = (AllowAny,)
 
     def paginate_queryset(self, queryset):

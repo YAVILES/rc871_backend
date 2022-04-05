@@ -59,7 +59,7 @@ class MarkResource(ModelResource):
     class Meta:
         model = Mark
         exclude = ('id', 'created', 'updated',)
-        import_id_fields = ('code',)
+        import_id_fields = ('description',)
 
 
 class ModelVehicleResource(ModelResource):
@@ -70,14 +70,15 @@ class ModelVehicleResource(ModelResource):
         if not mark:
             raise ValidationError("La marca es obligatoria")
         else:
-            row['city'] = City.objects.get_or_created(description=mark).id
+            _mark, created = Mark.objects.get_or_create(description=mark)
+            row['mark'] = _mark.id
 
         return row
 
     class Meta:
         model = Model
         exclude = ('id', 'created', 'updated',)
-        import_id_fields = ('code', 'mark',)
+        import_id_fields = ('mark', 'description',)
 
 
 @admin.register(Banner)
