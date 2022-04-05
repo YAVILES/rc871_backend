@@ -243,15 +243,6 @@ class VehicleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         else:
             return None
 
-    registration_certificate = serializers.ImageField(required=False)
-
-    def get_registration_certificate(self, obj: 'Vehicle'):
-        if obj.registration_certificate and hasattr(obj.registration_certificate, 'url'):
-            registration_certificate_url = obj.registration_certificate.url
-            return registration_certificate_url
-        else:
-            return None
-
     holder_s_license = serializers.ImageField(required=False)
 
     def get_holder_s_license(self, obj: 'Vehicle'):
@@ -355,7 +346,7 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         many=True
     )
     status_display = serializers.CharField(source='get_status_display', read_only=True)
-    
+
     def create(self, validated_data):
         try:
             with transaction.atomic():
