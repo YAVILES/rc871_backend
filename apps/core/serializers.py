@@ -237,7 +237,7 @@ class VehicleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     license_plate = serializers.CharField()
     stalls = serializers.IntegerField(default=4)
     color = serializers.CharField()
-    transmission = serializers.IntegerField()
+    transmission = serializers.IntegerField(default=1)
     transmission_display = serializers.CharField(source='get_transmission_display', read_only=True)
     owner_name = serializers.CharField()
     owner_last_name = serializers.CharField()

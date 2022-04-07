@@ -194,7 +194,10 @@ class PlanViewSet(ModelViewSet):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         if self.action == 'retrieve':
-            context["plan"] = self.get_object().id
+            try:
+                context["plan"] = self.get_object().id
+            except:
+                pass
         return context
 
     def paginate_queryset(self, queryset):
