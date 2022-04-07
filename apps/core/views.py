@@ -191,15 +191,6 @@ class PlanViewSet(ModelViewSet):
     permission_classes = (AllowAny,)
     authentication_classes = []
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        if self.action == 'retrieve':
-            try:
-                context["plan"] = self.get_object().id
-            except:
-                pass
-        return context
-
     def paginate_queryset(self, queryset):
         """
         Return a single page of results, or `None` if pagination is disabled.

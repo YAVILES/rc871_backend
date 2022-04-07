@@ -123,7 +123,7 @@ class CoveragePlanSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         request = self.context.get("request")
         plan = self.context.get('plan', None)
         use = request.query_params.get('use', None)
-        if use:
+        if use and plan:
             try:
                 premium = Premium.objects.get(plan_id=plan, coverage_id=obj.id, use_id=use)
                 return PremiumCoverageSerializer(premium).data
@@ -151,7 +151,11 @@ class PlanDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         queryset=Use.objects.all(), many=True, required=False
     )
     uses_display = UseDefaultSerializer(many=True, read_only=True, source="uses", exclude=['created', 'updated'])
-    coverage = CoveragePlanSerializer(many=True, exclude=['plans'])
+    coverage = CoveragePlanSerializer(many=True, read_only=True, exclude=['plans'])
+
+    def validate(self, attrs):
+        self.context['plan'] = attrs.id
+        return attrs
 
     class Meta:
         model = Plan
