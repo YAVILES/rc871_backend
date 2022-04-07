@@ -789,6 +789,18 @@ class PolicyViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.L
     search_fields = ['number', 'taker__name', 'adviser__name', 'vehicle__model__mark__description',
                      'vehicle__model__description']
 
+    def get_queryset(self):
+        queryset = self.queryset
+        user = self.request.user
+
+        if user.is_superuser:
+            return queryset
+
+        if not user.is_staff:
+            return queryset.filter(adviser_id=user.id)
+        else:
+            return queryset.filter(taker_id=user.id)
+
     def paginate_queryset(self, queryset):
         """
         Return a single page of results, or `None` if pagination is disabled.

@@ -376,6 +376,9 @@ class Policy(ModelBase):
     due_date = models.DateTimeField(verbose_name=_('due_date'), null=True, help_text="Fecha de vencimiento")
     plan = models.ForeignKey(Plan, verbose_name=_('plan'), null=True, on_delete=models.PROTECT)
     status = models.SmallIntegerField(choices=STATUSES, default=OUTSTANDING, verbose_name=_('status'))
+    total_amount = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('total'), default=0.0)
+    total_insured_amount = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('total'), default=0.0)
+    change_factor = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('change factor'), default=0.0)
 
     class Meta:
         verbose_name = _('policy')
@@ -394,7 +397,6 @@ class PolicyCoverage(ModelBase):
     coverage = models.ForeignKey(Coverage, verbose_name=_('coverage'), blank=True, null=True, on_delete=models.PROTECT)
     insured_amount = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('price'), default=0.0)
     cost = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('cost'), default=0.0)
-    change_factor = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('change factor'), default=0.0)
 
 
 class HistoricalChangeRate(ModelBase):

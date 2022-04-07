@@ -96,7 +96,20 @@ class PremiumUseSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
 
 class UseDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    premiums = PremiumUseSerializer(many=True, read_only=True, source="premium_set", exclude=['use'])
+    premiums = serializers.SerializerMethodField(read_only=True)
+
+    def get_premiums(self, instance: Use):
+        request = self.context.get("request")
+        plans = instance.plan_set.all().values_list('id', flat=True)
+        queryset = instance.premium_set.filter(plan_id__in=plans)
+        plan = request.query_params.get('plan', None)
+        if plan:
+            _plan = Plan.objects.get(pk=plan)
+            queryset = queryset.filter(
+                plan_id=_plan.id, coverage_id__in=_plan.coverage.all().values_list('id', flat=True)
+            )
+
+        return PremiumUseSerializer(queryset, many=True).data
 
     class Meta:
         model = Use
@@ -108,10 +121,11 @@ class CoveragePlanSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
     def get_premium(self, obj: Coverage):
         request = self.context.get("request")
+        plan = self.context.get('plan', None)
         use = request.query_params.get('use', None)
         if use:
             try:
-                premium = Premium.objects.get(coverage_id=obj.id, use_id=use)
+                premium = Premium.objects.get(plan_id=plan, coverage_id=obj.id, use_id=use)
                 return PremiumCoverageSerializer(premium).data
             except ObjectDoesNotExist:
                 return None
@@ -137,7 +151,16 @@ class PlanDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         queryset=Use.objects.all(), many=True, required=False
     )
     uses_display = UseDefaultSerializer(many=True, read_only=True, source="uses", exclude=['created', 'updated'])
-    coverage = CoveragePlanSerializer(many=True, read_only=True, exclude=['plans'])
+    coverage = serializers.SerializerMethodField(read_only=True)
+
+    def get_coverage(self, instance: Plan):
+        return CoveragePlanSerializer(
+            instance.coverage,
+            context={'request': self.context.get("request"), 'plan': str(instance.id)},
+            many=True,
+            read_only=True,
+            exclude=['plans']
+        ).data
 
     class Meta:
         model = Plan
@@ -146,7 +169,17 @@ class PlanDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
 class CoverageDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     plans_display = PlanDefaultSerializer(many=True, read_only=True, source='plans')
-    premiums = PremiumCoverageSerializer(many=True, read_only=True, source="premium_set")
+    premiums = serializers.SerializerMethodField(read_only=True)
+
+    def get_premiums(self, instance: Coverage):
+        request = self.context.get("request")
+        plans = instance.plans.all().values_list('id', flat=True)
+        queryset = instance.premium_set.filter(plan_id__in=plans)
+        plan = request.query_params.get('plan', None)
+        if plan:
+            queryset = queryset.filter(plan_id=plan)
+
+        return PremiumUseSerializer(queryset, many=True).data
 
     class Meta:
         model = Coverage
@@ -299,7 +332,6 @@ class PolicyCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     number = serializers.IntegerField()
     insured_amount = serializers.DecimalField(max_digits=50, decimal_places=2)
     cost = serializers.DecimalField(max_digits=50, decimal_places=2)
-    change_factor = serializers.DecimalField(max_digits=50, decimal_places=2)
 
     class Meta:
         model = PolicyCoverage
@@ -358,8 +390,12 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
                 policy = Policy.objects.create(
                     adviser=adviser,
+                    change_factor=0.0 if change_factor is None else float(change_factor),
                     **validated_data
                 )
+
+                total_insured_amount = 0.0
+                total_amount = 0.0
 
                 for item in coverage:
                     premium = Premium.objects.get(plan_id=plan.id, use_id=use.id, coverage_id=item.id)
@@ -368,15 +404,20 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                             'coverage': item,
                             'insured_amount': premium.insured_amount,
                             'cost': premium.cost,
-                            'change_factor': 0.0 if change_factor is None else float(change_factor)
                         }
                     )
+                    total_insured_amount += float(premium.insured_amount)
+                    total_amount += float(premium.cost)
 
                 _items = [
                     PolicyCoverage(policy_id=policy.id, **item) for item in items
                 ]
 
                 PolicyCoverage.objects.bulk_create(_items)
+
+                policy.total_insured_amount = total_insured_amount
+                policy.total_amount = total_amount
+                policy.save(update_fields=['total_insured_amount', 'total_amount'])
 
                 return policy
 
