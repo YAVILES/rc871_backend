@@ -246,40 +246,9 @@ class VehicleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     owner_name = serializers.CharField()
     owner_last_name = serializers.CharField()
     owner_identity_card_image = serializers.ImageField(required=False)
-
-    def get_owner_identity_card_image(self, obj: 'Vehicle'):
-        if obj.owner_identity_card_image and hasattr(obj.owner_identity_card_image, 'url'):
-            owner_identity_card_url = obj.owner_identity_card_image.url
-            return owner_identity_card_url
-        else:
-            return None
-
     owner_license = serializers.ImageField(required=True)
-
-    def get_owner_license(self, obj: 'Vehicle'):
-        if obj.owner_license and hasattr(obj.owner_license, 'url'):
-            owner_license_url = obj.owner_license.url
-            return owner_license_url
-        else:
-            return None
-
-    owner_medical_certificate = serializers.ImageField(required=False)
-
-    def get_owner_medical_certificate(self, obj: 'Vehicle'):
-        if obj.owner_medical_certificate and hasattr(obj.owner_medical_certificate, 'url'):
-            owner_medical_certificate_url = obj.owner_medical_certificate.url
-            return owner_medical_certificate_url
-        else:
-            return None
-
     owner_circulation_card = serializers.ImageField(required=True)
-
-    def get_owner_circulation_card(self, obj: 'Vehicle'):
-        if obj.owner_circulation_card and hasattr(obj.owner_circulation_card, 'url'):
-            circulation_card_url = obj.owner_circulation_card.url
-            return circulation_card_url
-        else:
-            return None
+    owner_medical_certificate = serializers.ImageField(required=False)
 
     def create(self, validated_data):
         try:
@@ -327,6 +296,7 @@ class PolicyCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     number = serializers.IntegerField()
     insured_amount = serializers.DecimalField(max_digits=50, decimal_places=2)
     cost = serializers.DecimalField(max_digits=50, decimal_places=2)
+    coverage_display = CoverageDefaultSerializer(read_only=True, source="coverage")
 
     class Meta:
         model = PolicyCoverage
@@ -344,18 +314,15 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     taker_display = UserDefaultSerializer(read_only=True, source='taker')
     adviser = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
-        write_only=True,
         required=False
     )
     adviser_display = UserDefaultSerializer(read_only=True, source='adviser')
     vehicle = serializers.PrimaryKeyRelatedField(
-        queryset=Vehicle.objects.all(),
-        write_only=True,
+        queryset=Vehicle.objects.all()
     )
     vehicle_display = VehicleDefaultSerializer(read_only=True, source='vehicle')
     plan = serializers.PrimaryKeyRelatedField(
         queryset=Plan.objects.all(),
-        write_only=True,
     )
     plan_display = PlanDefaultSerializer(read_only=True, source='plan')
     items = PolicyCoverageSerializer(many=True, read_only=True)
@@ -365,6 +332,7 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         many=True
     )
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
 
     def create(self, validated_data):
         try:

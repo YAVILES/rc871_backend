@@ -460,14 +460,19 @@ class VehicleViewSet(ModelViewSet):
                     filename = vehicle.owner_license.path
                 elif archive == 'owner_medical_certificate':
                     filename = vehicle.owner_medical_certificate.path
-                elif archive == 'circulation_card':
-                    filename = vehicle.circulation_card.path
+                elif archive == 'owner_circulation_card':
+                    filename = vehicle.owner_circulation_card.path
                 elif archive == 'registration_certificate':
                     filename = vehicle.registration_certificate.path
                 elif archive == 'holder_s_license':
                     filename = vehicle.holder_s_license.path
                 elif archive == 'medical_certificate':
                     filename = vehicle.medical_certificate.path
+                else:
+                    return Response(
+                        {"error": "Debe identificar que archivo desea descargar"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
                 response = FileResponse(open(filename, 'rb'))
                 return response
             except ValueError as e:

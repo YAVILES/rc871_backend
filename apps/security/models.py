@@ -6,13 +6,24 @@ from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
-
+from django.contrib.auth.models import PermissionsMixin
 from apps.core.models import ModelBase, BranchOffice, Municipality
 
 
+class Module(ModelBase):
+    title = models.CharField(max_length=100, verbose_name=_('title'))
+    icon = models.CharField(max_length=255, verbose_name=_('icon'), null=True)
+
+    class Meta:
+        verbose_name = _('module')
+        verbose_name_plural = _('modules')
+
+
 class Workflow(ModelBase):
+    module = models.ForeignKey(Module, verbose_name=_('module'), null=True, on_delete=models.CASCADE)
     title = models.CharField(max_length=100, verbose_name=_('title'))
     url = models.CharField(max_length=255, verbose_name=_('url'))
+    icon = models.CharField(max_length=255, verbose_name=_('icon'), null=True)
 
     class Meta:
         verbose_name = _('workflow')
@@ -51,6 +62,7 @@ def circulation_card_image_path(user: 'security.User', file_name):
 class UserManager(BaseUserManager):
     def system(self):
         user, _ = self.get_or_create(
+            username='system',
             email='system@example.com',
             name='SYSTEM',
             last_name='SYSTEM',
@@ -62,11 +74,12 @@ class UserManager(BaseUserManager):
 
     def web(self):
         user, _ = self.get_or_create(
+            username='web',
             email='web@example.com',
             name='WEB',
             last_name='WEB',
             # Como es plain text deberia ser suficiente para que el usuario no haga login
-            password='WEB',
+            password='web',
             is_active=False
         )
         return user
@@ -100,13 +113,15 @@ class UserManager(BaseUserManager):
         return self._create_user(email, name, last_name, password, database, **extra_fields)
 
 
-class User(AbstractBaseUser, ModelBase):
+class User(AbstractBaseUser, PermissionsMixin, ModelBase):
     code = models.CharField(max_length=255, verbose_name=_('code'), null=True, unique=True,
                             help_text="Código que se usaría para las sincronización con apps externas")
     username = models.CharField(max_length=50, verbose_name=_('username'), null=True, unique=True)
     email = models.EmailField(verbose_name=_('email'))
     email_alternative = models.EmailField(null=True, verbose_name=_('email_alternative'))
-    identification_number = models.CharField(max_length=50,  unique=True, verbose_name=_('identification_number'), null=True)
+    identification_number = models.CharField(
+        max_length=50,  unique=True, verbose_name=_('identification_number'), null=True
+    )
     name = models.CharField(max_length=255, verbose_name=_('name'), null=True)
     last_name = models.CharField(max_length=50, verbose_name=_('last name'))
     password = models.CharField(max_length=128, verbose_name=_('password'))

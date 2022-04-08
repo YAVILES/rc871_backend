@@ -10,7 +10,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from apps.core.models import Municipality, BranchOffice
-from apps.security.models import User, Workflow, Role
+from apps.security.models import User, Workflow, Role, Module
 
 
 class MunicipalityUserSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -21,7 +21,18 @@ class MunicipalityUserSerializer(DynamicFieldsMixin, serializers.ModelSerializer
         fields = serializers.ALL_FIELDS
 
 
+class ModuleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    class Meta:
+        model = Module
+        fields = serializers.ALL_FIELDS
+
+
 class WorkflowDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    module = serializers.PrimaryKeyRelatedField(
+        queryset=Module.objects.all(), required=False
+    )
+    module_display = ModuleDefaultSerializer(read_only=True, source="module")
+
     class Meta:
         model = Workflow
         fields = serializers.ALL_FIELDS
@@ -39,9 +50,11 @@ class RoleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
 
 class RoleUserSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    workflows_display = WorkflowDefaultSerializer(many=True, read_only=True, source="workflows")
+
     class Meta:
         model = Role
-        fields = ('id', 'name',)
+        fields = ('id', 'name', 'workflows', 'workflows_display',)
 
 
 class RoleFullSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -58,6 +71,7 @@ class UserCreateClientSerializer(serializers.ModelSerializer):
         queryset=Role.objects.all(), many=True, required=False, write_only=True
     )
     username = serializers.CharField(max_length=255, required=False)
+    identification_number = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     password = serializers.CharField(max_length=255, write_only=True, required=False)
     point = geo_fields.PointField(required=False)
     is_superuser = serializers.BooleanField(required=False)
@@ -98,7 +112,7 @@ class UserCreateClientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'email_alternative', 'photo', 'password', 'name', 'last_name', 'full_name',
+        fields = ('id', 'identification_number', 'username', 'email', 'email_alternative', 'photo', 'password', 'name', 'last_name', 'full_name',
                   'direction', 'telephone', 'phone', 'point', 'is_superuser', 'roles', 'info',)
 
 
@@ -150,8 +164,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'email_alternative', 'photo', 'password', 'name', 'last_name', 'full_name',
-                  'direction', 'telephone', 'phone', 'branch_office', 'point', 'is_superuser', 'roles', 'info',)
+        fields = ('id', 'username', 'identification_number', 'email', 'email_alternative', 'photo', 'password', 'name',
+                  'last_name', 'full_name', 'direction', 'telephone', 'phone', 'branch_office', 'point', 'is_superuser',
+                  'roles', 'info',)
 
 
 class BranchOfficeUserSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -174,7 +189,7 @@ class UserDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     municipality = serializers.PrimaryKeyRelatedField(
         queryset=Municipality.objects.all(), required=True
     )
-    municipality_display = MunicipalityUserSerializer(read_only=True, source='branch_office')
+    municipality_display = MunicipalityUserSerializer(read_only=True, source='municipality')
 
     class Meta:
         model = User
@@ -194,11 +209,13 @@ class ClientDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 class UserSimpleSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     point = geo_fields.PointField(required=False)
     is_superuser = serializers.BooleanField(required=False, read_only=True)
+    roles_display = RoleDefaultSerializer(many=True, read_only=True, source="roles")
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'name', 'last_name', 'full_name', 'direction', 'telephone', 'phone',
-                  'point', 'is_active', 'is_superuser', 'is_staff', 'branch_office', 'info', 'roles', 'created', 'updated',)
+        fields = ('id', 'username', 'email', 'name', 'last_name', 'full_name', 'identification_number', 'direction',
+                  'telephone', 'phone', 'is_active', 'is_superuser', 'is_staff', 'branch_office', 'info', 'roles',
+                  'roles_display', 'created', 'updated', 'point',)
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
