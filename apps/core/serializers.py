@@ -146,6 +146,20 @@ class PlanForUseSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         fields = serializers.ALL_FIELDS
 
 
+class PlanWithCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    coverage = serializers.SerializerMethodField(read_only=True)
+
+    def get_coverage(self, obj: Plan):
+        self.context['plan'] = obj.id
+        return CoveragePlanSerializer(
+            obj.coverage, many=True, read_only=True, exclude=['plans'], context=self.context
+        ).data
+
+    class Meta:
+        model = Plan
+        fields = ('id', 'description', 'coverage',)
+
+
 class PlanDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     uses = serializers.PrimaryKeyRelatedField(
         queryset=Use.objects.all(), many=True, required=False

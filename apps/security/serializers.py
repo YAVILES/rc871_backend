@@ -202,8 +202,9 @@ class ClientDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'email_alternative', 'password', 'name', 'last_name', 'full_name',
-                  'direction', 'telephone', 'phone', 'point', 'info', 'created', 'updated', 'is_active', 'photo',)
+        fields = ('id', 'username', 'identification_number', 'email', 'email_alternative', 'password', 'name',
+                  'last_name', 'full_name', 'direction', 'telephone', 'phone', 'point', 'info', 'created', 'updated',
+                  'is_active', 'photo',)
 
 
 class UserSimpleSerializer(DynamicFieldsMixin, serializers.ModelSerializer):

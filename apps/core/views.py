@@ -19,7 +19,8 @@ from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium,
 from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
     UseDefaultSerializer, PlanDefaultSerializer, CoverageDefaultSerializer, PremiumDefaultSerializer, \
     ModelDefaultSerializer, MarkDefaultSerializer, VehicleDefaultSerializer, MunicipalityDefaultSerializer, \
-    CityDefaultSerializer, StateDefaultSerializer, PolicyDefaultSerializer, HistoricalChangeRateDefaultSerializer
+    CityDefaultSerializer, StateDefaultSerializer, PolicyDefaultSerializer, HistoricalChangeRateDefaultSerializer, \
+    PlanWithCoverageSerializer
 from rc871_backend.utils.functions import format_headers_import
 
 
@@ -190,6 +191,11 @@ class PlanViewSet(ModelViewSet):
     search_fields = ['code', 'description', 'is_active']
     permission_classes = (AllowAny,)
     authentication_classes = []
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve'] and self.request.query_params.get('use', None):
+            return PlanWithCoverageSerializer
+        return self.serializer_class
 
     def paginate_queryset(self, queryset):
         """
@@ -434,7 +440,7 @@ class VehicleFilter(filters.FilterSet):
     class Meta:
         model = Vehicle
         fields = ['serial_bodywork', 'serial_engine', 'license_plate', 'transmission', 'taker__username',
-                  'model__description']
+                  'model__description', 'taker_id', 'use_id']
 
 
 class VehicleViewSet(ModelViewSet):
@@ -443,7 +449,7 @@ class VehicleViewSet(ModelViewSet):
     filterset_class = VehicleFilter
     serializer_class = VehicleDefaultSerializer
     search_fields = ['serial_bodywork', 'serial_engine', 'license_plate', 'transmission', 'taker__username',
-                     'model__description']
+                     'model__description', 'use_id', 'taker_id']
     permission_classes = (AllowAny,)
 
     @action(methods=['GET'], detail=True)
