@@ -1,9 +1,9 @@
 # coding=utf-8
+from constance import config
 from constance.backends.database.models import Constance
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django_restql.mixins import DynamicFieldsMixin
-from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -372,7 +372,11 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                     adviser = User.objects.web()
 
                 use = vehicle.use
-                change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
+                try:
+                    change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
+                except ObjectDoesNotExist:
+                    getattr(config, "CHANGE_FACTOR")
+                    change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
 
                 items = []
 
