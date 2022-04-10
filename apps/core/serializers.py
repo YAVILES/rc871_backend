@@ -248,7 +248,10 @@ class VehicleDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         required=True
     )
     model_display = ModelDefaultSerializer(read_only=True, source='model')
-    taker = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    taker = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(is_staff=False),
+        required=False
+    )
     taker_display = UserDefaultSerializer(read_only=True, source='taker')
     serial_bodywork = serializers.CharField()
     serial_engine = serializers.CharField()
@@ -324,10 +327,13 @@ class PolicyCoverageCreateSerializer(serializers.ModelSerializer):
 
 
 class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    taker = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    taker = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(is_staff=False),
+        required=False
+    )
     taker_display = UserDefaultSerializer(read_only=True, source='taker')
     adviser = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(),
+        queryset=User.objects.filter(is_staff=True),
         required=False
     )
     adviser_display = UserDefaultSerializer(read_only=True, source='adviser')
@@ -357,6 +363,11 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                 coverage = validated_data.pop('coverage')
                 vehicle = validated_data.get('vehicle')
                 adviser = validated_data.pop('adviser', None)
+                taker = validated_data.get('taker', None)
+
+                if taker is None:
+                    validated_data['taker'] = request.user
+
                 if adviser is None:
                     adviser = User.objects.web()
 

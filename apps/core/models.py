@@ -284,7 +284,7 @@ class Vehicle(ModelBase):
                                      help_text="Dirección del dueño")
     owner_email = models.EmailField(max_length=100, blank=True, null=True, verbose_name=_('owner email'),
                                     help_text="Correo del dueño")
-    taker = models.ForeignKey('security.User', verbose_name=_('taker'), on_delete=models.PROTECT)
+    taker = models.ForeignKey('security.User', verbose_name=_('taker'), on_delete=models.PROTECT, null=True)
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
 
     class Meta:

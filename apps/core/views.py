@@ -1,5 +1,6 @@
 import tablib
 from django.db import transaction
+from django.db.models import Q
 from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, serializers, mixins
@@ -178,9 +179,18 @@ class UseViewSet(ModelViewSet):
 
 
 class PlanFilter(filters.FilterSet):
+    use = filters.UUIDFilter(method="verified_use")
+
+    def verified_use(self, queryset, name, value):
+        if value:
+            queryset = queryset.filter(
+                Q(uses__in=[value]) & Q(coverage__premium__use_id=value) & Q(coverage__premium__cost__gt=0)
+            ).distinct()
+        return queryset
+
     class Meta:
         model = Plan
-        fields = ['code', 'description', 'is_active']
+        fields = ['code', 'description', 'is_active', 'use']
 
 
 class PlanViewSet(ModelViewSet):
