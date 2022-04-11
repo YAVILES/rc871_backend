@@ -394,7 +394,14 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                 if coverage:
                     coverage_list = coverage
                 else:
-                    coverage_list = plan.coverage.filter(Q(premium__use_id=use.id) & Q(premium__cost__isnull=False))
+                    query = plan.coverage_set.filter(
+                        Q(default=False) & Q(is_active=True) & Q(premium__use_id=use.id) &
+                        Q(premium__cost__isnull=False)
+                    )
+                    query_default = Coverage.objects.filter(
+                        Q(default=True) & Q(is_active=True) & Q(premium__use_id=use.id) & Q(premium__cost__isnull=False)
+                    )
+                    coverage_list = query_default.union(query).order_by('default', 'created',)
 
                 for item in coverage_list:
                     premium = Premium.objects.get(plan_id=plan.id, use_id=use.id, coverage_id=item.id)
