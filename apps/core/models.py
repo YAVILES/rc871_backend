@@ -2,8 +2,9 @@ import uuid
 from datetime import datetime
 from os import remove
 from os import path
-
+from constance import config
 from constance.backends.database.models import Constance
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.signals import post_save
 from sequences import get_next_value
@@ -137,7 +138,7 @@ class Plan(ModelBase):
     def coverage(self):
         query = self.coverage_set.filter(default=False, is_active=True)
         query_default = Coverage.objects.filter(default=True, is_active=True)
-        return query_default.union(query).order_by('default', 'created',)
+        return query_default.union(query).order_by('default', 'created', )
 
     def __str__(self):
         return self.description
@@ -176,6 +177,40 @@ class Premium(ModelBase):
     insured_amount = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('price'), default=0.0)
     cost = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('cost'), default=0.0)
     last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
+
+    @property
+    def insured_amount_display(self):
+        return '{} {}'.format(self.insured_amount, settings.CURRENCY_FORMAT)
+
+    @property
+    def cost_display(self):
+        return '{} {}'.format(self.cost, settings.CURRENCY_FORMAT)
+
+    @property
+    def insured_amount_change(self):
+        try:
+            change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
+        except ObjectDoesNotExist:
+            getattr(config, "CHANGE_FACTOR")
+            change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
+        return float(self.insured_amount) * change_factor
+
+    @property
+    def insured_amount_change_display(self):
+        return '{} {}'.format(self.insured_amount_change, settings.CURRENCY_CHANGE_FORMAT)
+
+    @property
+    def cost_change(self):
+        try:
+            change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
+        except ObjectDoesNotExist:
+            getattr(config, "CHANGE_FACTOR")
+            change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
+        return float(self.cost) * change_factor
+
+    @property
+    def cost_change_display(self):
+        return '{} {}'.format(self.cost_change, settings.CURRENCY_CHANGE_FORMAT)
 
     class Meta:
         verbose_name = _('premium')
@@ -247,9 +282,8 @@ class Vehicle(ModelBase):
         (AUTOMATIC, _('Automática'))
     )
     model = models.ForeignKey(Model, verbose_name=_('model'), on_delete=models.PROTECT)
-    serial_bodywork = models.CharField(max_length=50, blank=True, null=True, unique=True,
-                                       verbose_name=_('serial bodywork'))
-    serial_engine = models.CharField(max_length=50, blank=True, null=True, unique=True, verbose_name=_('serial engine'))
+    serial_bodywork = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('serial bodywork'))
+    serial_engine = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('serial engine'))
     license_plate = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('license plate'))
     stalls = models.IntegerField(verbose_name='stalls', default=4)
     color = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('color'))

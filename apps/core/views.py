@@ -462,6 +462,16 @@ class VehicleViewSet(ModelViewSet):
                      'model__description', 'use_id', 'taker_id']
     permission_classes = (AllowAny,)
 
+    def get_queryset(self):
+        queryset = self.queryset
+        user = self.request.user
+
+        if user.is_superuser:
+            return queryset
+
+        if not user.is_staff:
+            return queryset.filter(taker_id=user.id)
+
     @action(methods=['GET'], detail=True)
     def download_archive(self, request, pk):
         archive = self.request.query_params.get('archive', None)
@@ -817,7 +827,7 @@ class PolicyViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.L
         if user.is_superuser:
             return queryset
 
-        if not user.is_staff:
+        if user.is_staff:
             return queryset.filter(adviser_id=user.id)
         else:
             return queryset.filter(taker_id=user.id)

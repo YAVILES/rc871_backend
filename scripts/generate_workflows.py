@@ -14,6 +14,11 @@ def run(*args):
                 'icon': 'system_update_outlined',
                 'workflows': [
                     {
+                        'title': 'Configuración',
+                        'url': 'settings',
+                        'icon': 'settings_display'
+                    },
+                    {
                         'title': 'Gestión de Usuarios',
                         'url': 'users',
                         'icon': 'supervised_user_circle_rounded'

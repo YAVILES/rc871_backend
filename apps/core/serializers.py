@@ -1,6 +1,7 @@
 # coding=utf-8
 from constance import config
 from constance.backends.database.models import Constance
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Q
@@ -47,7 +48,13 @@ class BranchOfficeDefaultSerializer(DynamicFieldsMixin, serializers.ModelSeriali
 
 class PremiumCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     insured_amount = serializers.DecimalField(max_digits=50, decimal_places=2, default=0.0)
+    insured_amount_display = serializers.CharField(read_only=True)
     cost = serializers.DecimalField(max_digits=50, decimal_places=2, default=0.0)
+    cost_display = serializers.CharField(read_only=True)
+    insured_amount_change = serializers.DecimalField(max_digits=50, decimal_places=2, default=0.0, read_only=True)
+    insured_amount_change_display = serializers.CharField(read_only=True)
+    cost_change = serializers.DecimalField(max_digits=50, decimal_places=2, default=0.0, read_only=True)
+    cost_change__display = serializers.CharField(read_only=True)
 
     class Meta:
         model = Premium
@@ -127,7 +134,9 @@ class CoveragePlanSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         if use and plan:
             try:
                 premium = Premium.objects.get(plan_id=plan, coverage_id=obj.id, use_id=use)
-                return PremiumCoverageSerializer(premium).data
+                return PremiumCoverageSerializer(
+                    premium, exclude=['created', 'updated', 'last_sync_date']
+                ).data
             except ObjectDoesNotExist:
                 return None
 
@@ -135,7 +144,7 @@ class CoveragePlanSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
     class Meta:
         model = Coverage
-        fields = serializers.ALL_FIELDS
+        fields = ('id', 'default', 'description', 'premium', 'plans',)
 
 
 class PlanForUseSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -149,6 +158,10 @@ class PlanForUseSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
 class PlanWithCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     coverage = serializers.SerializerMethodField(read_only=True)
+    cost_total = serializers.SerializerMethodField(read_only=True)
+    cost_total_display = serializers.SerializerMethodField(read_only=True)
+    cost_total_change = serializers.SerializerMethodField(read_only=True)
+    cost_total_change_display = serializers.SerializerMethodField(read_only=True)
 
     def get_coverage(self, obj: Plan):
         self.context['plan'] = obj.id
@@ -156,9 +169,56 @@ class PlanWithCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer
             obj.coverage, many=True, read_only=True, exclude=['plans'], context=self.context
         ).data
 
+    def get_cost_total(self, plan: Plan):
+        request = self.context.get("request")
+        use = request.query_params.get('use', None)
+        total = 0
+        if use and plan:
+            query = plan.coverage_set.filter(
+                Q(default=False) & Q(is_active=True) & Q(premium__use_id=use) &
+                Q(premium__cost__isnull=False)
+            )
+            query_default = Coverage.objects.filter(
+                Q(default=True) & Q(is_active=True) & Q(premium__use_id=use) & Q(premium__cost__isnull=False)
+            )
+            coverage_list = query_default.union(query)
+            try:
+                for coverage in coverage_list:
+                    premium = Premium.objects.get(plan_id=plan.id, coverage_id=coverage.id, use_id=use)
+                    total += premium.cost
+                return total
+            except ObjectDoesNotExist:
+                return None
+
+        return None
+
+    def get_cost_total_display(self, plan: Plan):
+        cost_total = self.get_cost_total(plan)
+        if cost_total:
+            return '{} {}'.format(cost_total, settings.CURRENCY_FORMAT)
+        return None
+
+    def get_cost_total_change(self, plan: Plan):
+        cost_total = self.get_cost_total(plan)
+        if cost_total:
+            try:
+                change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
+            except ObjectDoesNotExist:
+                getattr(config, "CHANGE_FACTOR")
+                change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
+            return float(cost_total) * change_factor
+        return None
+
+    def get_cost_total_change_display(self, plan: Plan):
+        cost_total = self.get_cost_total_change(plan)
+        if cost_total:
+            return '{} {}'.format(cost_total, settings.CURRENCY_CHANGE_FORMAT)
+        return None
+
     class Meta:
         model = Plan
-        fields = ('id', 'description', 'coverage',)
+        fields = ('id', 'description', 'coverage', 'cost_total', 'cost_total_display', 'cost_total_change',
+                  'cost_total_change_display',)
 
 
 class PlanDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -361,7 +421,6 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         try:
             with transaction.atomic():
                 request = self.context.get('request')# Se pusa si el usuario es vendedor
-                user = request.user
                 plan = validated_data.get('plan')
                 coverage = validated_data.pop('coverage', None)
                 vehicle = validated_data.get('vehicle')
