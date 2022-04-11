@@ -1,4 +1,6 @@
 # coding=utf-8
+from decimal import Decimal
+
 from constance import config
 from constance.backends.database.models import Constance
 from django.conf import settings
@@ -210,7 +212,7 @@ class PlanWithCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer
             except ObjectDoesNotExist:
                 getattr(config, "CHANGE_FACTOR")
                 change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
-            return float(cost_total) * change_factor
+            return float(format(cost_total * Decimal(change_factor), ".2f"))
         return None
 
     def get_cost_total_change_display(self, plan: Plan):
@@ -256,7 +258,7 @@ class PlanWithCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer
             except ObjectDoesNotExist:
                 getattr(config, "CHANGE_FACTOR")
                 change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
-            return float(insured_amount_total) * change_factor
+            return float(format(insured_amount_total * Decimal(change_factor), ".2f"))
         return None
 
     def get_insured_amount_total_change_display(self, plan: Plan):

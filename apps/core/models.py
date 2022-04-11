@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from os import remove
 from os import path
 from constance import config
@@ -193,7 +194,7 @@ class Premium(ModelBase):
         except ObjectDoesNotExist:
             getattr(config, "CHANGE_FACTOR")
             change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
-        return float(self.insured_amount) * change_factor
+        return float(format(self.insured_amount * Decimal(change_factor), ".2f"))
 
     @property
     def insured_amount_change_display(self):
@@ -206,7 +207,8 @@ class Premium(ModelBase):
         except ObjectDoesNotExist:
             getattr(config, "CHANGE_FACTOR")
             change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
-        return float(self.cost) * change_factor
+
+        return float(format(self.cost * Decimal(change_factor), ".2f"))
 
     @property
     def cost_change_display(self):
@@ -416,11 +418,11 @@ class Policy(ModelBase):
 
     @property
     def total_amount_display(self):
-        return '{} {}'.format( settings.CURRENCY_FORMAT, self.total_amount)
+        return '{} {}'.format(settings.CURRENCY_FORMAT, self.total_amount)
 
     @property
     def total_amount_change(self):
-        return self.total_amount * self.change_factor
+        return float(format(self.total_amount * Decimal(self.change_factor), ".2f"))
 
     @property
     def total_amount_change_display(self):
@@ -432,7 +434,7 @@ class Policy(ModelBase):
 
     @property
     def total_insured_amount_change(self):
-        return self.total_insured_amount * self.change_factor
+        return float(format(self.total_insured_amount * Decimal(self.change_factor), ".2f"))
 
     @property
     def total_insured_amount_change_display(self):
