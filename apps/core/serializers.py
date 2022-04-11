@@ -350,7 +350,8 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     coverage = serializers.PrimaryKeyRelatedField(
         queryset=Coverage.objects.all(),
         write_only=True,
-        many=True
+        many=True,
+        required=False
     )
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     type_display = serializers.CharField(source='get_type_display', read_only=True)
