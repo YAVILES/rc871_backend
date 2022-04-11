@@ -363,7 +363,7 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                 request = self.context.get('request')# Se pusa si el usuario es vendedor
                 user = request.user
                 plan = validated_data.get('plan')
-                coverage = validated_data.pop('coverage')
+                coverage = validated_data.pop('coverage', None)
                 vehicle = validated_data.get('vehicle')
                 adviser = validated_data.pop('adviser', None)
                 taker = validated_data.get('taker', None)
