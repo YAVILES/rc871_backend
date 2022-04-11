@@ -3,6 +3,7 @@ from constance import config
 from constance.backends.database.models import Constance
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
+from django.db.models import Q
 from django_restql.mixins import DynamicFieldsMixin
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -389,7 +390,12 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                 total_insured_amount = 0.0
                 total_amount = 0.0
 
-                for item in coverage:
+                if coverage:
+                    coverage_list = coverage
+                else:
+                    coverage_list = plan.coverage.filter(Q(premium__use_id=use.id) & Q(premium__cost__gt=0))
+
+                for item in coverage_list:
                     premium = Premium.objects.get(plan_id=plan.id, use_id=use.id, coverage_id=item.id)
                     items.append(
                         {
