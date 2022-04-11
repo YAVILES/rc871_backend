@@ -180,11 +180,11 @@ class Premium(ModelBase):
 
     @property
     def insured_amount_display(self):
-        return '{} {}'.format(self.insured_amount, settings.CURRENCY_FORMAT)
+        return '{} {}'.format(settings.CURRENCY_FORMAT, self.insured_amount)
 
     @property
     def cost_display(self):
-        return '{} {}'.format(self.cost, settings.CURRENCY_FORMAT)
+        return '{} {}'.format(settings.CURRENCY_FORMAT, self.cost)
 
     @property
     def insured_amount_change(self):
@@ -197,7 +197,7 @@ class Premium(ModelBase):
 
     @property
     def insured_amount_change_display(self):
-        return '{} {}'.format(self.insured_amount_change, settings.CURRENCY_CHANGE_FORMAT)
+        return '{} {}'.format(settings.CURRENCY_CHANGE_FORMAT, self.insured_amount_change)
 
     @property
     def cost_change(self):
@@ -210,7 +210,7 @@ class Premium(ModelBase):
 
     @property
     def cost_change_display(self):
-        return '{} {}'.format(self.cost_change, settings.CURRENCY_CHANGE_FORMAT)
+        return '{} {}'.format(settings.CURRENCY_CHANGE_FORMAT, self.cost_change)
 
     class Meta:
         verbose_name = _('premium')
@@ -416,7 +416,7 @@ class Policy(ModelBase):
 
     @property
     def total_amount_display(self):
-        return '{} {}'.format(self.total_amount, settings.CURRENCY_FORMAT)
+        return '{} {}'.format( settings.CURRENCY_FORMAT, self.total_amount)
 
     @property
     def total_amount_change(self):
@@ -424,11 +424,11 @@ class Policy(ModelBase):
 
     @property
     def total_amount_change_display(self):
-        return '{} {}'.format(self.total_amount_change, settings.CURRENCY_CHANGE_FORMAT)
+        return '{} {}'.format(settings.CURRENCY_CHANGE_FORMAT, self.total_amount_change)
 
     @property
     def total_insured_amount_display(self):
-        return '{} {}'.format(self.total_insured_amount, settings.CURRENCY_FORMAT)
+        return '{} {}'.format(settings.CURRENCY_FORMAT, self.total_insured_amount)
 
     @property
     def total_insured_amount_change(self):
@@ -436,7 +436,7 @@ class Policy(ModelBase):
 
     @property
     def total_insured_amount_change_display(self):
-        return '{} {}'.format(self.total_insured_amount_change, settings.CURRENCY_CHANGE_FORMAT)
+        return '{} {}'.format(settings.CURRENCY_CHANGE_FORMAT, self.total_insured_amount_change)
 
     class Meta:
         verbose_name = _('policy')

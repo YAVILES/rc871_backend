@@ -162,6 +162,10 @@ class PlanWithCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer
     cost_total_display = serializers.SerializerMethodField(read_only=True)
     cost_total_change = serializers.SerializerMethodField(read_only=True)
     cost_total_change_display = serializers.SerializerMethodField(read_only=True)
+    insured_amount_total = serializers.SerializerMethodField(read_only=True)
+    insured_amount_total_display = serializers.SerializerMethodField(read_only=True)
+    insured_amount_total_change = serializers.SerializerMethodField(read_only=True)
+    insured_amount_total_change_display = serializers.SerializerMethodField(read_only=True)
 
     def get_coverage(self, obj: Plan):
         self.context['plan'] = obj.id
@@ -195,7 +199,7 @@ class PlanWithCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer
     def get_cost_total_display(self, plan: Plan):
         cost_total = self.get_cost_total(plan)
         if cost_total:
-            return '{} {}'.format(cost_total, settings.CURRENCY_FORMAT)
+            return '{} {}'.format(settings.CURRENCY_FORMAT, cost_total)
         return None
 
     def get_cost_total_change(self, plan: Plan):
@@ -210,15 +214,62 @@ class PlanWithCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer
         return None
 
     def get_cost_total_change_display(self, plan: Plan):
-        cost_total = self.get_cost_total_change(plan)
-        if cost_total:
-            return '{} {}'.format(cost_total, settings.CURRENCY_CHANGE_FORMAT)
+        cost_total_change = self.get_cost_total_change(plan)
+        if cost_total_change:
+            return '{} {}'.format(settings.CURRENCY_CHANGE_FORMAT, cost_total_change)
+        return None
+
+    def get_insured_amount_total(self, plan: Plan):
+        request = self.context.get("request")
+        use = request.query_params.get('use', None)
+        total = 0
+        if use and plan:
+            query = plan.coverage_set.filter(
+                Q(default=False) & Q(is_active=True) & Q(premium__use_id=use) &
+                Q(premium__cost__isnull=False)
+            )
+            query_default = Coverage.objects.filter(
+                Q(default=True) & Q(is_active=True) & Q(premium__use_id=use) & Q(premium__cost__isnull=False)
+            )
+            coverage_list = query_default.union(query)
+            try:
+                for coverage in coverage_list:
+                    premium = Premium.objects.get(plan_id=plan.id, coverage_id=coverage.id, use_id=use)
+                    total += premium.insured_amount
+                return total
+            except ObjectDoesNotExist:
+                return None
+
+        return None
+
+    def get_insured_amount_total_display(self, plan: Plan):
+        insured_amount_total = self.get_insured_amount_total(plan)
+        if insured_amount_total:
+            return '{} {}'.format(settings.CURRENCY_FORMAT, insured_amount_total)
+        return None
+
+    def get_insured_amount_total_change(self, plan: Plan):
+        insured_amount_total = self.get_insured_amount_total(plan)
+        if insured_amount_total:
+            try:
+                change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
+            except ObjectDoesNotExist:
+                getattr(config, "CHANGE_FACTOR")
+                change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
+            return float(insured_amount_total) * change_factor
+        return None
+
+    def get_insured_amount_total_change_display(self, plan: Plan):
+        insured_amount_total_change = self.get_insured_amount_total_change(plan)
+        if insured_amount_total_change:
+            return '{} {}'.format(settings.CURRENCY_CHANGE_FORMAT, insured_amount_total_change)
         return None
 
     class Meta:
         model = Plan
         fields = ('id', 'description', 'coverage', 'cost_total', 'cost_total_display', 'cost_total_change',
-                  'cost_total_change_display',)
+                  'cost_total_change_display', 'insured_amount_total', 'insured_amount_total_display',
+                  'insured_amount_total_change', 'insured_amount_total_change_display',)
 
 
 class PlanDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
