@@ -414,6 +414,30 @@ class Policy(ModelBase):
     total_insured_amount = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('total'), default=0.0)
     change_factor = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('change factor'), default=0.0)
 
+    @property
+    def total_amount_display(self):
+        return '{} {}'.format(self.total_amount, settings.CURRENCY_FORMAT)
+
+    @property
+    def total_amount_change(self):
+        return self.total_amount * self.change_factor
+
+    @property
+    def total_amount_change_display(self):
+        return '{} {}'.format(self.total_amount_change, settings.CURRENCY_CHANGE_FORMAT)
+
+    @property
+    def total_insured_amount_display(self):
+        return '{} {}'.format(self.total_insured_amount, settings.CURRENCY_FORMAT)
+
+    @property
+    def total_insured_amount_change(self):
+        return self.total_insured_amount * self.change_factor
+
+    @property
+    def total_insured_amount_change_display(self):
+        return '{} {}'.format(self.total_insured_amount_change, settings.CURRENCY_CHANGE_FORMAT)
+
     class Meta:
         verbose_name = _('policy')
         verbose_name_plural = _('policies')
