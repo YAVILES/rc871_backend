@@ -267,7 +267,7 @@ IMPORT_EXPORT_IMPORT_PERMISSION_CODE = 'change'
 
 CONSTANCE_CONFIG = {
     #'IVA': (12.00, "Impuesto al Valor Agregado (IVA)", float),
-    'CHANGE_FACTOR': (0, "Factor de cambio", float),
+    'CHANGE_FACTOR': (0, "Factor de cambio Bs", float),
 }
 
 # CELERY STUFF
