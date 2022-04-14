@@ -202,7 +202,7 @@ class PlanWithCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer
         cost_total = self.get_cost_total(plan)
         if cost_total:
             return '{} {}'.format(settings.CURRENCY_FORMAT, cost_total)
-        return None
+        return '{} 0'.format(settings.CURRENCY_FORMAT)
 
     def get_cost_total_change(self, plan: Plan):
         cost_total = self.get_cost_total(plan)
@@ -219,7 +219,7 @@ class PlanWithCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer
         cost_total_change = self.get_cost_total_change(plan)
         if cost_total_change:
             return '{} {}'.format(settings.CURRENCY_CHANGE_FORMAT, cost_total_change)
-        return None
+        return '{} 0'.format(settings.CURRENCY_CHANGE_FORMAT)
 
     def get_insured_amount_total(self, plan: Plan):
         request = self.context.get("request")
@@ -248,7 +248,7 @@ class PlanWithCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer
         insured_amount_total = self.get_insured_amount_total(plan)
         if insured_amount_total:
             return '{} {}'.format(settings.CURRENCY_FORMAT, insured_amount_total)
-        return None
+        return '{} 0'.format(settings.CURRENCY_FORMAT)
 
     def get_insured_amount_total_change(self, plan: Plan):
         insured_amount_total = self.get_insured_amount_total(plan)
@@ -265,7 +265,7 @@ class PlanWithCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer
         insured_amount_total_change = self.get_insured_amount_total_change(plan)
         if insured_amount_total_change:
             return '{} {}'.format(settings.CURRENCY_CHANGE_FORMAT, insured_amount_total_change)
-        return None
+        return '{} 0'.format(settings.CURRENCY_CHANGE_FORMAT)
 
     class Meta:
         model = Plan

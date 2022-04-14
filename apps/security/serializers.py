@@ -96,7 +96,10 @@ class UserCreateClientSerializer(serializers.ModelSerializer):
 
         password = validated_data.get('password')
         email = validated_data.get('email')
+        username = validated_data.pop('username', None)
         email_alternative = validated_data.get('email_alternative')
+        if username:
+            validated_data['username'] = str(username).lower()
         validated_data['email'] = str(email).lower()
         validated_data['email_alternative'] = str(email_alternative).lower()
         validated_data['is_staff'] = False
@@ -148,6 +151,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
         password = validated_data.get('password')
         email = validated_data.get('email')
+        username = validated_data.pop('username', None)
+        if username:
+            validated_data['username'] = str(username).lower()
         email_alternative = validated_data.get('email_alternative')
         validated_data['email'] = str(email).lower()
         validated_data['email_alternative'] = str(email_alternative).lower()
