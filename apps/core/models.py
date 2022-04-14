@@ -61,7 +61,7 @@ class Banner(ModelBase):
     title = models.CharField(max_length=100, verbose_name=_('title'))
     subtitle = models.CharField(max_length=100, verbose_name=_('subtitle'))
     content = models.CharField(max_length=255, verbose_name=_('content'))
-    image = models.ImageField(upload_to='photos/', null=True, verbose_name=_('image'))
+    image = models.ImageField(upload_to=banner_image_path, null=True, verbose_name=_('image'))
     url = models.CharField(max_length=255, verbose_name=_('url'))
     sequence_order = models.IntegerField(verbose_name='sequence order', default=1)
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
