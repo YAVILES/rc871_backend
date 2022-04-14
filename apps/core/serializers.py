@@ -18,6 +18,7 @@ from apps.security.serializers import UserDefaultSerializer
 
 
 class BannerDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    image = serializers.ImageField(required=False, write_only=True)
     image = serializers.SerializerMethodField(required=False, read_only=True)
 
     def get_image(self, obj: Banner):
