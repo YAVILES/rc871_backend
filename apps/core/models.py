@@ -54,7 +54,7 @@ class Location(ModelBase):
 
 
 def banner_image_path(product: 'Banner', file_name):
-    return 'img/banner/{1}'.format(file_name)
+    return 'img/banner/{0}'.format(file_name)
 
 
 class Banner(ModelBase):
