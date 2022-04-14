@@ -475,6 +475,7 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     )
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     type_display = serializers.CharField(source='get_type_display', read_only=True)
+    action_display = serializers.CharField(source='get_action_display', read_only=True)
     total_amount = serializers.DecimalField(max_digits=50, decimal_places=2, default=0.0, read_only=True)
     total_amount_display = serializers.CharField(read_only=True)
     total_amount_change = serializers.DecimalField(max_digits=50, decimal_places=2, default=0.0, read_only=True)
