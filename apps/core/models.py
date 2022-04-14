@@ -53,7 +53,7 @@ class Location(ModelBase):
         ordering = ['description']
 
 
-def banner_image_path(product: 'Banner', file_name):
+def banner_image_path(banner: 'Banner', file_name):
     return 'img/banner/{0}'.format(file_name)
 
 
