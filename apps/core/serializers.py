@@ -426,7 +426,13 @@ class MunicipalityDefaultSerializer(DynamicFieldsMixin, serializers.ModelSeriali
 class PolicyCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     number = serializers.IntegerField()
     insured_amount = serializers.DecimalField(max_digits=50, decimal_places=2)
+    insured_amount_display = serializers.CharField(read_only=True)
+    insured_amount_change = serializers.DecimalField(max_digits=50, decimal_places=2)
+    insured_amount_change_display = serializers.CharField(read_only=True)
     cost = serializers.DecimalField(max_digits=50, decimal_places=2)
+    cost_display = serializers.CharField(read_only=True)
+    cost_change = serializers.DecimalField(max_digits=50, decimal_places=2)
+    cost_change_display = serializers.CharField(read_only=True)
     coverage_display = CoverageDefaultSerializer(read_only=True, source="coverage")
 
     class Meta:

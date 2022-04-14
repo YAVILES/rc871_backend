@@ -458,6 +458,35 @@ class PolicyCoverage(ModelBase):
     insured_amount = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('price'), default=0.0)
     cost = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('cost'), default=0.0)
 
+    @property
+    def insured_amount_display(self):
+        return '{} {}'.format(settings.CURRENCY_FORMAT, self.insured_amount)
+
+    @property
+    def insured_amount_change(self):
+        return float(format(self.insured_amount * Decimal(self.policy.change_factor), ".2f"))
+
+    @property
+    def insured_amount_change_display(self):
+        return '{} {}'.format(settings.CURRENCY_CHANGE_FORMAT, self.insured_amount_change)
+
+    @property
+    def cost_display(self):
+        return '{} {}'.format(settings.CURRENCY_FORMAT, self.cost)
+
+    @property
+    def cost_change(self):
+        return float(format(self.insured_amount * Decimal(self.policy.change_factor), ".2f"))
+
+    @property
+    def cost_change_display(self):
+        return '{} {}'.format(settings.CURRENCY_CHANGE_FORMAT, self.insured_amount_change)
+
+    class Meta:
+        verbose_name = _('item')
+        verbose_name_plural = _('items')
+        ordering = ['number']
+
 
 class HistoricalChangeRate(ModelBase):
     valid_from = models.DateField(verbose_name="valid_from", null=False, blank=True)
