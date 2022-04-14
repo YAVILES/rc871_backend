@@ -422,7 +422,7 @@ class Policy(ModelBase):
 
     @property
     def total_amount_change(self):
-        return float(format(self.total_amount * Decimal(self.change_factor), ".2f"))
+        return float(format(Decimal(self.total_amount) * Decimal(self.change_factor), ".2f"))
 
     @property
     def total_amount_change_display(self):
