@@ -192,7 +192,7 @@ class PlanWithCoverageSerializer(DynamicFieldsMixin, serializers.ModelSerializer
                 for coverage in coverage_list:
                     premium = Premium.objects.get(plan_id=plan.id, coverage_id=coverage.id, use_id=use)
                     total += premium.cost
-                return total
+                return Decimal(total)
             except ObjectDoesNotExist:
                 return None
 
