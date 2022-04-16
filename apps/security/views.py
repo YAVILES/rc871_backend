@@ -21,7 +21,7 @@ class UserFilter(filters.FilterSet):
 
     class Meta:
         model = User
-        fields = ['username', 'is_active', 'name', 'email', 'email_alternative', 'code', 'is_staff']
+        fields = ['username', 'is_active', 'name', 'email', 'email_alternative', 'code', 'is_adviser', 'is_staff']
 
 
 class UserViewSet(ModelViewSet):
@@ -29,7 +29,7 @@ class UserViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = UserFilter
     serializer_class = UserDefaultSerializer
-    search_fields = ['username', 'name', 'email', 'email_alternative', 'code', 'is_staff']
+    search_fields = ['username', 'name', 'email', 'email_alternative', 'is_adviser', 'code', 'is_staff']
     permission_classes = (AllowAny,)
 
     def paginate_queryset(self, queryset):

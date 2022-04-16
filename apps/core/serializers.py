@@ -282,7 +282,7 @@ class PlanDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     coverage = CoveragePlanSerializer(many=True, read_only=True, exclude=['plans'])
 
     def validate(self, attrs):
-        self.context['plan'] = attrs.id
+        self.context['plan'] = attrs.get('id', None)
         return attrs
 
     class Meta:
@@ -447,6 +447,7 @@ class PolicyCoverageCreateSerializer(serializers.ModelSerializer):
 
 
 class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    created_by = serializers.HiddenField(default=serializers.CurrentUserDefault(), write_only=True)
     taker = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.filter(is_staff=False),
         required=False
@@ -489,17 +490,27 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         try:
             with transaction.atomic():
                 request = self.context.get('request')# Se pusa si el usuario es vendedor
+                user = request.user
                 plan = validated_data.get('plan')
                 coverage = validated_data.pop('coverage', None)
                 vehicle = validated_data.get('vehicle')
-                adviser = validated_data.pop('adviser', None)
                 taker = validated_data.get('taker', None)
 
                 if taker is None:
                     validated_data['taker'] = request.user
 
-                if adviser is None:
-                    adviser = User.objects.web()
+                if user.is_adviser:
+                    adviser = user
+                else:
+                    try:
+                        adviser_id = Constance.objects.get(key="ADVISER_DEFAULT_ID").value
+                    except ObjectDoesNotExist:
+                        getattr(config, "CHANGE_FACTOR")
+                        adviser_id = Constance.objects.get(key="ADVISER_DEFAULT_ID").value
+                    if adviser_id is None:
+                        adviser = User.objects.web()
+                    else:
+                        adviser = User.objects.get(pk=adviser_id)
 
                 use = vehicle.use
                 try:

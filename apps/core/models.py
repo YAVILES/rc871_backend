@@ -406,6 +406,8 @@ class Policy(ModelBase):
     taker = models.ForeignKey('security.User', verbose_name=_('taker'), on_delete=models.PROTECT)
     adviser = models.ForeignKey('security.User', related_name="policy_adviser", verbose_name=_('adviser'),
                                 on_delete=models.PROTECT)
+    created_by = models.ForeignKey('security.User', related_name="policy_user", verbose_name=_('created by'),
+                                   on_delete=models.PROTECT, null=True)
     vehicle = models.ForeignKey(Vehicle, verbose_name=_('vehicle'), on_delete=models.PROTECT)
     type = models.SmallIntegerField(choices=TYPES, default=RCV, verbose_name=_('type'))
     action = models.SmallIntegerField(choices=ACTIONS, default=NEW, verbose_name=_('action'))

@@ -94,14 +94,17 @@ class UserCreateClientSerializer(serializers.ModelSerializer):
                 detail={"error": 'El usuario ' + validated_data.get('username') + ' ya existe'}
             )
 
-        password = validated_data.get('password')
+        password = validated_data.get('password', None)
+        if password is None:
+            validated_data['password'] = validated_data.get('identification_card')
         email = validated_data.get('email')
         username = validated_data.pop('username', None)
-        email_alternative = validated_data.get('email_alternative')
+        email_alternative = validated_data.pop('email_alternative', None)
         if username:
             validated_data['username'] = str(username).lower()
         validated_data['email'] = str(email).lower()
-        validated_data['email_alternative'] = str(email_alternative).lower()
+        if email_alternative:
+            validated_data['email_alternative'] = str(email_alternative).lower()
         validated_data['is_staff'] = False
         try:
             with transaction.atomic():
@@ -115,8 +118,9 @@ class UserCreateClientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'identification_number', 'username', 'email', 'email_alternative', 'photo', 'password', 'name', 'last_name', 'full_name',
-                  'direction', 'telephone', 'phone', 'point', 'is_superuser', 'roles', 'info',)
+        fields = ('id', 'identification_number', 'username', 'email', 'email_alternative', 'photo', 'password', 'name',
+                  'last_name', 'full_name', 'direction', 'telephone', 'phone', 'point', 'is_superuser', 'roles',
+                  'info',)
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -150,13 +154,16 @@ class UserCreateSerializer(serializers.ModelSerializer):
             )
 
         password = validated_data.get('password')
+        if password is None:
+            validated_data['password'] = validated_data.get('identification_card')
         email = validated_data.get('email')
         username = validated_data.pop('username', None)
         if username:
             validated_data['username'] = str(username).lower()
-        email_alternative = validated_data.get('email_alternative')
+        email_alternative = validated_data.pop('email_alternative', None)
         validated_data['email'] = str(email).lower()
-        validated_data['email_alternative'] = str(email_alternative).lower()
+        if email_alternative:
+            validated_data['email_alternative'] = str(email_alternative).lower()
         validated_data['is_staff'] = True
         try:
             with transaction.atomic():
@@ -172,7 +179,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'identification_number', 'email', 'email_alternative', 'photo', 'password', 'name',
                   'last_name', 'full_name', 'direction', 'telephone', 'phone', 'branch_office', 'point', 'is_superuser',
-                  'roles', 'info',)
+                  'roles', 'info', 'is_adviser',)
 
 
 class BranchOfficeUserSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -191,6 +198,7 @@ class UserDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     branch_office = serializers.PrimaryKeyRelatedField(
         queryset=BranchOffice.objects.all(), required=True
     )
+    full_name = serializers.CharField(max_length=255, read_only=True)
     branch_office_display = BranchOfficeUserSerializer(read_only=True, source='branch_office')
     municipality = serializers.PrimaryKeyRelatedField(
         queryset=Municipality.objects.all(), required=True
@@ -221,8 +229,8 @@ class UserSimpleSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'name', 'last_name', 'full_name', 'identification_number', 'direction',
-                  'telephone', 'phone', 'is_active', 'is_superuser', 'is_staff', 'branch_office', 'info', 'roles',
-                  'roles_display', 'created', 'updated', 'point',)
+                  'telephone', 'phone', 'is_active', 'is_superuser', 'is_staff', 'is_adviser',
+                  'branch_office', 'info', 'roles', 'roles_display', 'created', 'updated', 'point',)
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -252,6 +260,8 @@ class ChangePasswordSerializer(serializers.Serializer):
         email = validated_data.get('email')
         email = str(email).lower()
         password = validated_data.get('password')
+        if password is None:
+            validated_data['password'] = validated_data.get('identification_card')
         try:
             password_validation.validate_password(password)
         except ValidationError as error:

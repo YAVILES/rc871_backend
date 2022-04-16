@@ -140,6 +140,13 @@ class User(AbstractBaseUser, PermissionsMixin, ModelBase):
     )
     circulation_card = models.ImageField(verbose_name=_('circulation card'), upload_to=circulation_card_image_path,
                                          null=True, help_text="Carnet de circulación")
+    is_adviser = models.BooleanField(
+        _('is adviser'),
+        default=False,
+        help_text=_(
+            'Define si el usuario es un asesor.'
+        ),
+    )
     is_superuser = models.BooleanField(
         _('is superuser'),
         default=False,

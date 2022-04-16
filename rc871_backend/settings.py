@@ -147,6 +147,7 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 
+"""
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -161,6 +162,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+"""
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
@@ -182,8 +184,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 MEDIA_URL = env('MEDIA_URL')
 
-MEDIA_ROOT = '/var/www/html/admin871/media/'  # os.path.join(BASE_DIR, "media")
-# MEDIA_ROOT = 'C:/xampp/htdocs/admin871/media/'
+# MEDIA_ROOT = '/var/www/html/admin871/media/'  # os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = 'C:/xampp/htdocs/admin871/media/'
 
 AUTH_USER_MODEL = 'security.User'
 AUTHENTICATION_BACKENDS = ['apps.security.backends.CustomAuthenticationBackend', ]
@@ -268,6 +270,7 @@ IMPORT_EXPORT_IMPORT_PERMISSION_CODE = 'change'
 CONSTANCE_CONFIG = {
     #'IVA': (12.00, "Impuesto al Valor Agregado (IVA)", float),
     'CHANGE_FACTOR': (0, "Factor de cambio Bs", float),
+    'ADVISER_DEFAULT_ID': (None, "Asesor por Defecto", str),
 }
 
 # CELERY STUFF

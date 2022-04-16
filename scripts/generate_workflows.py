@@ -64,6 +64,11 @@ def run(*args):
                         'icon': 'supervised_user_circle_outlined'
                     },
                     {
+                        'title': 'Gestión de Asesores',
+                        'url': 'advisers',
+                        'icon': 'supervisor_account'
+                    },
+                    {
                         'title': 'Gestión de Pólizas',
                         'url': 'policies',
                         'icon': 'security_update_good_outlined'
