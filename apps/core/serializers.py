@@ -448,6 +448,7 @@ class PolicyCoverageCreateSerializer(serializers.ModelSerializer):
 
 class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     created_by = serializers.HiddenField(default=serializers.CurrentUserDefault(), write_only=True)
+    created_by_display = UserDefaultSerializer(read_only=True, source='created_by')
     taker = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.filter(is_staff=False),
         required=False

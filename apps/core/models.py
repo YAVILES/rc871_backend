@@ -445,6 +445,7 @@ class Policy(ModelBase):
     class Meta:
         verbose_name = _('policy')
         verbose_name_plural = _('policies')
+        ordering = ['-number']
 
 
 def get_policy_coverage_number():
