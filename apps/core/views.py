@@ -867,7 +867,7 @@ class PolicyViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.L
         qr_image = ImageFile(io.BytesIO(image_stream), name='qrcode.png')
         policy.qrcode = qr_image
         policy.save(update_fields=['qrcode'])
-        context = PolicyDefaultSerializer(Policy.objects.last(), context=self.get_serializer_context()).data
+        context = PolicyDefaultSerializer(policy, context=self.get_serializer_context()).data
         html = render_to_string("report-pdf.html", context)
         pdf = pdfkit.from_string(html, False)
         pdf_file = File(io.BytesIO(pdf), name='{0}.pdf'.format(str(policy.number)))
