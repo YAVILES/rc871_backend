@@ -376,6 +376,14 @@ def get_policy_number():
     return get_next_value('get_policy_number')
 
 
+def qrcode_image_path(policy: 'Policy', file_name):
+    return 'file/policy/{0}/{1}'.format(policy.number, file_name)
+
+
+def file_policy_path(policy: 'Policy', file_name):
+    return 'file/policy/{0}/{1}'.format(policy.number, file_name)
+
+
 class Policy(ModelBase):
     OUTSTANDING = 0
     PENDING_APPROVAL = 1  # pendiente de pago
@@ -417,6 +425,8 @@ class Policy(ModelBase):
     total_amount = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('total'), default=0.0)
     total_insured_amount = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('total'), default=0.0)
     change_factor = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('change factor'), default=0.0)
+    qrcode = models.ImageField(upload_to=qrcode_image_path, null=True, verbose_name=_('qrcode image'))
+    file = models.FileField(upload_to=file_policy_path, null=True, verbose_name=_('file policy pdf'))
 
     @property
     def total_amount_display(self):

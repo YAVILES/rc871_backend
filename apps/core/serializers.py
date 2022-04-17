@@ -22,7 +22,7 @@ class BannerDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
     def get_image(self, obj: Banner):
         if obj.image and hasattr(obj.image, 'url'):
-            image_url = obj.image.url
+            image_url = obj.imul
             return image_url
         else:
             return None

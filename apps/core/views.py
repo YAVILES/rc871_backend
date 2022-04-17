@@ -1,7 +1,16 @@
+import io
+from os import path, remove
+
+import pdfkit
+import qrcode
 import tablib
+from django.conf import settings
+from django.core.files import File
+from django.core.files.images import ImageFile
 from django.db import transaction
 from django.db.models import Q
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
+from django.template.loader import render_to_string
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, serializers, mixins
 from rest_framework.decorators import action
@@ -9,6 +18,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from six import BytesIO
 from tablib import Dataset
 from django_filters import rest_framework as filters
 from django.utils.translation import ugettext_lazy as _
@@ -16,7 +26,7 @@ from django.utils.translation import ugettext_lazy as _
 from apps.core.admin import BannerResource, StateResource, CityResource, MunicipalityResource, MarkResource, \
     ModelVehicleResource, HistoricalChangeRateResource
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
-    Municipality, Policy, HistoricalChangeRate
+    Municipality, Policy, HistoricalChangeRate, file_policy_path
 from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
     UseDefaultSerializer, PlanDefaultSerializer, CoverageDefaultSerializer, PremiumDefaultSerializer, \
     ModelDefaultSerializer, MarkDefaultSerializer, VehicleDefaultSerializer, MunicipalityDefaultSerializer, \
@@ -840,6 +850,33 @@ class PolicyViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.L
         if self.paginator is None or not_paginator:
             return None
         return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+    @action(methods=['GET'], detail=True)
+    def pdf(self, request, pk):
+        policy = self.get_object()
+        if policy.file and path.exists(policy.file.path):
+            remove(policy.file.path)
+        if policy.qrcode and path.exists(policy.qrcode.path):
+            remove(policy.qrcode.path)
+
+        data = file_policy_path(policy, '{0}.pdf'.format(str(policy.number)))
+        img = qrcode.make(settings.MEDIA_URL + data)
+        buf = BytesIO()  # BytesIO se da cuenta de leer y escribir bytes en la memoria
+        img.save(buf)
+        image_stream = buf.getvalue()
+        qr_image = ImageFile(io.BytesIO(image_stream), name='qrcode.png')
+        policy.qrcode = qr_image
+        policy.save(update_fields=['qrcode'])
+        context = PolicyDefaultSerializer(Policy.objects.last(), context=self.get_serializer_context()).data
+        html = render_to_string("report-pdf.html", context)
+        pdf = pdfkit.from_string(html, False)
+        pdf_file = File(io.BytesIO(pdf), name='{0}.pdf'.format(str(policy.number)))
+        policy.file = pdf_file
+        policy.save()
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="ourcodeworld.pdf"'
+
+        return response
 
 
 class HistoricalChangeRateFilter(filters.FilterSet):

@@ -1,0 +1,149 @@
+{% extends "base-pdf.html" %}
+{% block content %}
+<table class="table table-sm">
+     <tr>
+        <td rowspan="2">Columna 1</td>
+        <td rowspan="2" class="text-center">
+            <h4><strong>ASOCIACIÓN COOPERATIVA <br> DE SEGUROS PARA VEHÍCULOS</strong></h4>
+            <h1><strong>RC 871 <span class="lead"><strong>R.L.</strong></span></strong></h1>
+        </td>
+        <td>Nro. Poliza: <br> 0051792-{{number}}</td>
+    </tr>
+    <tr>
+        <td><strong>185</strong></td>
+    </tr>
+</table>
+<table class="table">
+    <tr>
+        <td>
+            <h6><strong>Inscrita en la SUDEASEG bajo el Nro. 14. Registro SUNACOOP 99982.</strong></h6>
+            <p class="fs-6">
+                Reporte de siniestros y sugerencias: +58-414-42651197/412-1334214 <br>
+                email: cooperativa871@gmail.com
+            </p>
+        </td>
+        <td>
+            <p>@segurosrc871</p>
+        </td>
+        <td class="text-center">
+            <img src="{{ qrcode }}" width="100">
+        </td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            <h5>POLIZA  DE SEGURO DE RESPONSABILIDAD CIVIL PARA AUTOMOVILES.</h5>
+        </td>
+    </tr>
+</table>
+<h4>Información del asegurado</h4>
+<table class="table table-bordered table-sm">
+     <tr>
+        <td>Cedula o Rif: V-23410567</td>
+        <td>
+            Nombre: AVILES PONCE YONATHAN ALEXANDER
+        </td>
+        <td>Telefonos: 04244444875</td>
+    </tr>
+    <tr>
+        <td colspan="2">Dirección: Valencia</td>
+        <td>email: yonathanaviles123@gmail.com</td>
+    </tr>
+</table>
+<h4>Información General</h4>
+<table class="table table-bordered table-sm">
+     <tr>
+        <td>Tipo de Pago: Contado</td>
+        <td>
+            Asesor: MARÍA SANCHEZ
+        </td>
+        <td>Tipo de Poliza: RCV</td>
+        <td>Fecha de emisión: 27/01/2020 11:23:33 am</td>
+        <td>Fecha de vencimiento: 27/01/2021 11:23:33 am</td>
+        <td>Acción: NUEVA</td>
+    </tr>
+</table>
+<h4>Información del Vehiculo</h4>
+<table class="table table-bordered table-sm">
+     <tr>
+        <td>Marca: RENAULT</td>
+        <td>Modelo: TWINGO / FREE</td>
+        <td>Serial C.: 9FB238964832KHK8678</td>
+        <td>Serial M.: 9FB238964832KHK8678</td>
+        <td>Puestos: 4</td>
+    </tr>
+    <tr>
+        <td>Año: 2000</td>
+        <td>Uso: PARTICULAR - LIVIANO</td>
+        <td>Transmisión: Sincrónica</td>
+        <td>Placa: ADB602DU</td>
+        <td>Color: ROJO</td>
+    </tr>
+</table>
+<h4>Coberturas</h4>
+<table class="table table-bordered table-sm">
+    <tr>
+        <th>BENEFICIOS</th>
+        <th>TASA</th>
+        <th>DEDUCIBLE</th>
+        <th>MONTO GARANTIZADO</th>
+        <th>COSTO</th>
+    </tr>
+    <tr>
+        <td>ASISTENCIA LEGAL</td>
+        <td>0.00</td>
+        <td>0.00</td>
+        <td>Bs. 400.00</td>
+        <td>Bs. 40.00</td>
+    </tr>
+    <tr>
+        <td>ASISTENCIA LEGAL</td>
+        <td>0.00</td>
+        <td>0.00</td>
+        <td>Bs. 400.00</td>
+        <td>Bs. 40.00</td>
+    </tr>
+    <tr>
+        <td>DAÑOS A COSAS</td>
+        <td>0.00</td>
+        <td>0.00</td>
+        <td>Bs. 200.00</td>
+        <td>Bs. 20.00</td>
+    </tr>
+    <tr>
+        <td>DAÑOS A OCUPANTES</td>
+        <td>0.00</td>
+        <td>0.00</td>
+        <td>Bs. 1.600.00</td>
+        <td>Bs. 400.00</td>
+    </tr>
+</table>
+<h4>Montos por Servicio y Financiamiento</h4>
+<table class="table table-bordered table-sm">
+   <tr>
+        <td>Monto anual de las primas: Bs. 500.00</td>
+        <td>Monto a pagar: Bs. 500.00</td>
+        <td>Inicial: Bs. 0.00</td>
+    </tr>
+</table>
+<h4>Relación de Cobros</h4>
+<table class="table table-bordered table-sm">
+    <tr>
+        <th>TIPO DE PAGO</th>
+        <th>BANCO</th>
+        <th>REFERENCIA</th>
+        <th>MONTO PAGADO</th>
+    </tr>
+    <tr>
+        <td>Efectivo</td>
+        <td>BANESCO</td>
+        <td>0051762</td>
+        <td>100.00</td>
+    </tr>
+    <tr>
+        <td>TDebito</td>
+        <td>BANESCO</td>
+        <td>0342347</td>
+        <td>400.00</td>
+    </tr>
+</table>
+{% endblock %}
