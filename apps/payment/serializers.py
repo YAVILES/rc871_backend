@@ -1,0 +1,114 @@
+from decimal import Decimal
+
+from constance import config
+from constance.backends.database.models import Constance
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import transaction
+from django_restql.mixins import DynamicFieldsMixin
+from rest_framework import serializers
+
+from apps.core.models import Policy
+from apps.core.serializers import PolicyDefaultSerializer
+from apps.payment.models import Bank, Payment
+from apps.security.models import User
+from apps.security.serializers import UserSimpleSerializer
+
+
+class BankDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    image = serializers.SerializerMethodField(required=False, read_only=True)
+
+    def get_image(self, obj: Bank):
+        if obj.image and hasattr(obj.image, 'url'):
+            image_url = obj.imul
+            return image_url
+        else:
+            return None
+
+    class Meta:
+        model = Bank
+        fields = serializers.ALL_FIELDS
+
+
+class PaymentDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    archive_display = serializers.SerializerMethodField(read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    method_display = serializers.CharField(source='get_method_display', read_only=True)
+    user_display = UserSimpleSerializer(read_only=True)
+    bank_display = BankDefaultSerializer(read_only=True)
+    policy_display = PolicyDefaultSerializer(read_only=True)
+    amount_display = serializers.CharField(read_only=True)
+    amount_full_display = serializers.CharField(read_only=True)
+    total_full_bs_display = serializers.CharField(read_only=True)
+
+    def get_archive_display(self, obj: 'Payment'):
+        request = self.context.get('request')
+        if obj.archive and hasattr(obj.archive, 'url'):
+            archive_url = obj.archive.url
+            return request.build_absolute_uri(archive_url)
+        else:
+            return None
+
+    class Meta:
+        model = Payment
+        fields = serializers.ALL_FIELDS
+
+
+class PaymentSimpleSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault(), write_only=True)
+    archive = serializers.SerializerMethodField(read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    user_display = UserSimpleSerializer(read_only=True)
+    bank_display = BankDefaultSerializer(read_only=True)
+    method_display = serializers.CharField(source='get_method_display', read_only=True)
+
+    def get_archive(self, obj: 'Payment'):
+        request = self.context.get('request')
+        if obj.archive and hasattr(obj.archive, 'url'):
+            archive_url = obj.archive.url
+            return request.build_absolute_uri(archive_url)
+        else:
+            return None
+
+    class Meta:
+        model = Payment
+        fields = serializers.ALL_FIELDS
+
+
+class PaymentEditSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=True)
+    number = serializers.IntegerField(read_only=True)
+    archive = serializers.FileField(required=False)
+    coin = serializers.CharField(required=False, default=settings.CURRENCY.value)
+    bank = serializers.PrimaryKeyRelatedField(
+        queryset=Bank.objects.all(),
+        allow_null=True,
+        write_only=True,
+        required=False
+    )
+    policy = serializers.PrimaryKeyRelatedField(
+        queryset=Policy.objects.all(),
+        allow_null=True,
+        write_only=True,
+        required=False
+    )
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        required=False,
+        allow_null=True,
+        default=None
+    )
+
+    def create(self, validated_data):
+        try:
+            with transaction.atomic():
+                change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
+                validated_data['change_factor'] = change_factor
+                payment = super(PaymentEditSerializer, self).create(validated_data)
+        except ValidationError as error:
+            raise serializers.ValidationError(detail={"error": error.messages})
+        return payment
+
+    class Meta:
+        model = Payment
+        exclude = ('created', 'updated',)

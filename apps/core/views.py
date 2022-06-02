@@ -12,12 +12,12 @@ from django.db.models import Q
 from django.http import FileResponse, HttpResponse
 from django.template.loader import render_to_string
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, serializers, mixins
+from rest_framework import status, serializers
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from rest_framework.viewsets import ModelViewSet
 from six import BytesIO
 from tablib import Dataset
 from django_filters import rest_framework as filters
@@ -822,7 +822,7 @@ class PolicyFilter(filters.FilterSet):
                   'vehicle__model__description']
 
 
-class PolicyViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet):
+class PolicyViewSet(ModelViewSet):
     queryset = Policy.objects.all()
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = PolicyFilter

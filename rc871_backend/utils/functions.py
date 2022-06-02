@@ -8,6 +8,7 @@ from constance.backends.database.models import Constance
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import QuerySet
 from fcm_django.models import FCMDevice
+from money.currency import Currency
 
 from rc871_backend import settings
 
@@ -43,11 +44,11 @@ def get_settings(allow_settings):
                 id = None
                 value = getattr(config, key)
             data = {
-                    'id': id,
-                    'key': key,
-                    'default': default,
-                    'help_text': help_text,
-                    'value': value}
+                'id': id,
+                'key': key,
+                'default': default,
+                'help_text': help_text,
+                'value': value}
             setting_list.append(data)
     return setting_list
 
@@ -209,3 +210,13 @@ def send_fcm_external(title: str, body: str, registration_tokens=[]):
         return response
     except ValueError as e:
         return e
+
+
+def format_coin(coin):
+    if coin == Currency.USD.value:
+        coin_format = "$"
+    elif coin == Currency.VEF.value:
+        coin_format = "Bs"
+    else:
+        coin_format = coin
+    return coin_format

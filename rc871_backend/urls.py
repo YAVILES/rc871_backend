@@ -44,6 +44,7 @@ urlpatterns = [
     path('api/core/', include('apps.core.urls')),
     path('api/security/', include('apps.security.urls')),
     path('api/system/', include('apps.system.urls')),
+    path('api/payment/', include('apps.payment.urls')),
 
     # Tokens
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),

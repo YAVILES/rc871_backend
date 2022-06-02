@@ -110,6 +110,19 @@ def run(*args):
                         'icon': 'car_repair_outlined',
                     },
                 ]
+            },
+
+            # Administración de Pagos
+            {
+                'module': 'Administración de Pagos',
+                'icon': 'car_rental_outlined',
+                'workflows': [
+                    {
+                        'title': 'Gestión de Pagos',
+                        'url': 'marks',
+                        'icon': 'image_outlined',
+                    },
+                ]
             }
         ]
 

@@ -8,9 +8,10 @@ from constance.backends.database.models import Constance
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.signals import post_save
+from rest_framework import serializers
 from sequences import get_next_value
 from django.contrib.gis.db import models as geo_models
-from django.db import models, IntegrityError
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 MONDAY = 0
@@ -385,8 +386,8 @@ def file_policy_path(policy: 'Policy', file_name):
 
 
 class Policy(ModelBase):
-    OUTSTANDING = 0
-    PENDING_APPROVAL = 1  # pendiente de pago
+    OUTSTANDING = 0  # pendiente de pago
+    PENDING_APPROVAL = 1  # pendiente de aprobación
     PASSED = 2  # aprobado
     EXPIRED = 3
     REJECTED = 4
@@ -409,8 +410,9 @@ class Policy(ModelBase):
         (NEW, _('Nueva')),
     )
 
-    number = models.PositiveIntegerField(verbose_name='number', primary_key=False, db_index=True,
-                                         default=get_policy_number)
+    number = models.PositiveIntegerField(
+        verbose_name='number', primary_key=False, null=True, db_index=True, default=None
+    )
     taker = models.ForeignKey('security.User', verbose_name=_('taker'), on_delete=models.PROTECT)
     adviser = models.ForeignKey('security.User', related_name="policy_adviser", verbose_name=_('adviser'),
                                 on_delete=models.PROTECT)
@@ -530,3 +532,18 @@ def update_change_rate(sender, instance: HistoricalChangeRate, **kwargs):
 
 
 post_save.connect(update_change_rate, sender=HistoricalChangeRate)
+
+
+def post_save_policy(sender, instance: Policy, raw=False, **kwargs):
+    if raw:
+        return
+    created = kwargs['created']
+    try:
+        if not created and instance.status == Policy.PASSED and not instance.number:
+            instance.number = get_policy_number()
+            instance.save(update_fields=['number'])
+    except ValueError as e:
+        raise serializers.ValidationError(detail={'error': _(e.__str__())})
+
+
+post_save.connect(post_save_policy, sender=Policy)
