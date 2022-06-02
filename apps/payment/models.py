@@ -4,6 +4,7 @@ from django.db import models
 # Create your models here.
 from django.db.models.signals import post_save
 from money.currency import Currency
+from multiselectfield import MultiSelectField
 from rest_framework import serializers
 from sequences import get_next_value
 
@@ -11,6 +12,20 @@ from apps.core.models import ModelBase, Policy
 from django.utils.translation import ugettext_lazy as _
 
 from rc871_backend.utils.functions import format_coin
+
+TRANSFER = 0
+MOBILE_PAYMENT = 1
+CASH = 2
+ZELLE = 3
+OTHER = 4
+
+METHODS = (
+    (TRANSFER, _('Transferencia')),
+    (MOBILE_PAYMENT, _('Pago móvil')),
+    (CASH, _('Efectivo')),
+    (ZELLE, _('Zelle')),
+    (OTHER, _('Otro')),
+)
 
 
 def bank_archive_path(bank: 'Bank', file_name):
@@ -22,7 +37,11 @@ class Bank(ModelBase):
     ACTIVE = 1
     code = models.CharField(verbose_name=_('code'), max_length=255, blank=True, unique=True)
     description = models.CharField(verbose_name=_('description'), max_length=255)
+    email = models.CharField(max_length=255, verbose_name=_('email'), null=True, blank=True)
+    account_number = models.CharField(max_length=255, verbose_name=_('account_number'), null=True, blank=True)
+    account_name = models.CharField(max_length=255, verbose_name=_('account_name'), null=True, blank=True)
     image = models.ImageField(verbose_name=_('image'), upload_to=bank_archive_path, null=True)
+    methods = MultiSelectField(verbose_name=_('methods'), choices=METHODS, min_choices=1, default=None)
     status = models.SmallIntegerField(verbose_name=_('status'), default=ACTIVE, choices=(
         (ACTIVE, _('activo')),
         (INACTIVE, _('inactivo'))
@@ -45,20 +64,6 @@ class Payment(ModelBase):
     PENDING = 0
     REJECTED = 1
     ACCEPTED = 2
-
-    TRANSFER = 0
-    MOBILE_PAYMENT = 1
-    CASH = 2
-    ZELLE = 3
-    OTHER = 4
-
-    METHODS = (
-        (TRANSFER, _('Transferencia')),
-        (MOBILE_PAYMENT, _('Pago móvil')),
-        (CASH, _('Efectivo')),
-        (ZELLE, _('Zelle')),
-        (OTHER, _('Otro')),
-    )
 
     number = models.PositiveIntegerField(verbose_name='Number', primary_key=False, db_index=True,
                                          default=get_payment_number)

@@ -115,12 +115,17 @@ def run(*args):
             # Administración de Pagos
             {
                 'module': 'Administración de Pagos',
-                'icon': 'car_rental_outlined',
+                'icon': 'payment_outlined',
                 'workflows': [
                     {
+                        'title': 'Gestión de Bancos',
+                        'url': 'banks',
+                        'icon': 'food_bank_outlined',
+                    },
+                    {
                         'title': 'Gestión de Pagos',
-                        'url': 'marks',
-                        'icon': 'image_outlined',
+                        'url': 'payments',
+                        'icon': 'payment_outlined',
                     },
                 ]
             }

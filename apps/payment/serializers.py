@@ -17,6 +17,7 @@ from apps.security.serializers import UserSimpleSerializer
 
 class BankDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     image = serializers.SerializerMethodField(required=False, read_only=True)
+    status_display = serializers.CharField(max_length=255, read_only=True, source="get_status_display")
 
     def get_image(self, obj: Bank):
         if obj.image and hasattr(obj.image, 'url'):
