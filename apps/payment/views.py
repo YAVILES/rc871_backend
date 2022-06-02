@@ -1,10 +1,8 @@
 import tablib
-from constance import config
-from constance.backends.database.models import Constance
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
 from django.http import FileResponse
+from rest_framework import mixins
 
 # Create your views here.
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,7 +10,7 @@ from rest_framework import status, serializers
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from tablib import Dataset
 
 from apps.payment.admin import BankResource
@@ -114,7 +112,9 @@ class PaymentFilter(filters.FilterSet):
         fields = ['number', 'status', 'bank_id', 'method', 'policy_id', 'user_id', 'amount']
 
 
-class PaymentViewSet(ModelViewSet):
+class PaymentViewSet(
+    mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.ListModelMixin, GenericViewSet
+):
     queryset = Payment.objects.all().order_by('-number')
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = PaymentFilter
