@@ -591,13 +591,14 @@ class HomeDataSerializer(serializers.ModelSerializer):
         return Location.objects.aggregate(number=Count('id')).get('number', 0)
 
     def get_number_clients(self, obj: User):
+        print(obj.username, obj.is_superuser)
         if obj.is_superuser:
             return User.objects.filter(
                 is_staff=False, is_superuser=False, is_adviser=False
             ).aggregate(number=Count('id')).get('number', 0)
         else:
             return len(Policy.objects.filter(
-                created_by_id=obj.id
+                created_by_id=obj.id, taker__is_staff=False, taker__is_superuser=False, taker__is_adviser=False
             ).values('taker_id').distinct())
 
     def get_number_pending_policies(self, obj: User):

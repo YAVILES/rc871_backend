@@ -984,7 +984,6 @@ class CoinAPIView(APIView):
 
 class HomeDataAPIView(APIView):
     permission_classes = (AllowAny,)
-    authentication_classes = []
 
     def get(self, request):
         data = HomeDataSerializer(self.request.user).data
