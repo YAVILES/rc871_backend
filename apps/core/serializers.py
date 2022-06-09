@@ -592,7 +592,9 @@ class HomeDataSerializer(serializers.ModelSerializer):
 
     def get_number_clients(self, obj):
         if obj.is_superuser:
-            return User.objects.filter(is_staff=False).aggregate(number=Count('id')).get('number', 0)
+            return User.objects.filter(
+                is_staff=False, is_superuser=False, is_adviser=False
+            ).aggregate(number=Count('id')).get('number', 0)
         else:
             return len(Policy.objects.filter(
                 created_by_id=obj.id
