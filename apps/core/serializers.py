@@ -587,10 +587,10 @@ class HomeDataSerializer(serializers.ModelSerializer):
     number_pending_policies = serializers.SerializerMethodField(read_only=True)
     number_insured_vehicles = serializers.SerializerMethodField(read_only=True)
 
-    def get_number_branches(self, obj):
+    def get_number_branches(self, obj: User):
         return Location.objects.aggregate(number=Count('id')).get('number', 0)
 
-    def get_number_clients(self, obj):
+    def get_number_clients(self, obj: User):
         if obj.is_superuser:
             return User.objects.filter(
                 is_staff=False, is_superuser=False, is_adviser=False
@@ -600,7 +600,7 @@ class HomeDataSerializer(serializers.ModelSerializer):
                 created_by_id=obj.id
             ).values('taker_id').distinct())
 
-    def get_number_pending_policies(self, obj):
+    def get_number_pending_policies(self, obj: User):
         if obj.is_superuser:
             return Policy.objects.filter(
                 Q(status=Policy.PENDING_APPROVAL) | Q(status=Policy.OUTSTANDING)
