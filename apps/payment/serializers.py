@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django_restql.mixins import DynamicFieldsMixin
+from money.currency import CurrencyHelper, Currency
 from rest_framework import serializers, fields
 from apps.core.models import Policy
 from apps.core.serializers import PolicyDefaultSerializer
@@ -35,6 +36,7 @@ class PaymentDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault(), write_only=True)
     archive_display = serializers.SerializerMethodField(read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    coin_display = serializers.SerializerMethodField(read_only=True)
     method_display = serializers.CharField(source='get_method_display', read_only=True)
     user_display = UserSimpleSerializer(read_only=True)
     bank_display = BankDefaultSerializer(read_only=True)
@@ -43,7 +45,13 @@ class PaymentDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     amount_full_display = serializers.CharField(read_only=True)
     total_full_bs_display = serializers.CharField(read_only=True)
 
-    def get_archive_display(self, obj: 'Payment'):
+    def get_coin_display(self, obj: Payment):
+        return {
+            'value': obj.coin,
+            'description': CurrencyHelper._CURRENCY_DATA[Currency[obj.coin]]['display_name']
+        }
+
+    def get_archive_display(self, obj: Payment):
         request = self.context.get('request')
         if obj.archive and hasattr(obj.archive, 'url'):
             archive_url = obj.archive.url
@@ -58,13 +66,15 @@ class PaymentDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
 class PaymentSimpleSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault(), write_only=True)
+    archive_display = serializers.SerializerMethodField(read_only=True)
     archive = serializers.SerializerMethodField(read_only=True)
+    coin_display = serializers.CharField(source='get_coin_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     user_display = UserSimpleSerializer(read_only=True)
     bank_display = BankDefaultSerializer(read_only=True)
     method_display = serializers.CharField(source='get_method_display', read_only=True)
 
-    def get_archive(self, obj: 'Payment'):
+    def get_archive_display(self, obj: 'Payment'):
         request = self.context.get('request')
         if obj.archive and hasattr(obj.archive, 'url'):
             archive_url = obj.archive.url

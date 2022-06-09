@@ -126,7 +126,7 @@ class PaymentViewSet(
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = PaymentFilter
     serializer_class = PaymentDefaultSerializer
-    search_fields = ['number', 'status', 'bank__description', 'method', 'policy_id', 'user__description', 'amount']
+    search_fields = ['number', 'status', 'bank__description', 'method', 'user__name', 'amount']
 
     def get_serializer_class(self):
         if self.action in ['create', 'update']:
@@ -158,6 +158,18 @@ class PaymentViewSet(
             payment.save(update_fields=['status', 'commentary'])
             return Response(status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['POST', ])
+    @transaction.atomic()
+    def approve(self, request, pk):
+        payment = self.get_object()
+        if payment.status != Payment.PENDING:
+            raise serializers.ValidationError(
+                detail={'error': [_("Este pago ya fue procesado, no es posible aprobarlo")]})
+        else:
+            payment.status = Payment.ACCEPTED
+            payment.save(update_fields=['status'])
+            return Response(status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['POST', ])
     @transaction.atomic()
     def approve_payments(self, request):
@@ -167,6 +179,24 @@ class PaymentViewSet(
                 for payment in Payment.objects.filter(id__in=payments):
                     payment.status = Payment.ACCEPTED
                     payment.save(update_fields=['status'])
+            else:
+                raise serializers.ValidationError(
+                    detail={'error': _("Debe seleccionar al menos un pago")})
+        except ValueError as e:
+            raise serializers.ValidationError(detail={'error': _(e.__str__())})
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['POST', ])
+    @transaction.atomic()
+    def rejected_payments(self, request):
+        commentary = request.data.get('commentary', None)
+        payments = request.data.get('payments', None)
+        try:
+            if payments:
+                for payment in Payment.objects.filter(id__in=payments):
+                    payment.status = Payment.REJECTED
+                    payment.commentary = commentary
+                    payment.save(update_fields=['status', 'commentary'])
             else:
                 raise serializers.ValidationError(
                     detail={'error': _("Debe seleccionar al menos un pago")})

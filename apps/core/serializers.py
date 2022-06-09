@@ -6,13 +6,13 @@ from constance.backends.database.models import Constance
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from django_restql.mixins import DynamicFieldsMixin
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
-    Municipality, Policy, PolicyCoverage, HistoricalChangeRate
+    Municipality, Policy, PolicyCoverage, HistoricalChangeRate, Location
 from apps.security.models import User
 from apps.security.serializers import UserDefaultSerializer
 
@@ -490,7 +490,7 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     def create(self, validated_data):
         try:
             with transaction.atomic():
-                request = self.context.get('request')# Se pusa si el usuario es vendedor
+                request = self.context.get('request')  # Se pusa si el usuario es vendedor
                 user = request.user
                 plan = validated_data.get('plan')
                 coverage = validated_data.pop('coverage', None)
@@ -541,7 +541,7 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                     query_default = Coverage.objects.filter(
                         Q(default=True) & Q(is_active=True) & Q(premium__use_id=use.id) & Q(premium__cost__isnull=False)
                     )
-                    coverage_list = query_default.union(query).order_by('default', 'created',)
+                    coverage_list = query_default.union(query).order_by('default', 'created', )
 
                 for item in coverage_list:
                     premium = Premium.objects.get(plan_id=plan.id, use_id=use.id, coverage_id=item.id)
@@ -579,3 +579,45 @@ class HistoricalChangeRateDefaultSerializer(DynamicFieldsMixin, serializers.Mode
     class Meta:
         model = HistoricalChangeRate
         fields = serializers.ALL_FIELDS
+
+
+class HomeDataSerializer(serializers.ModelSerializer):
+    number_branches = serializers.SerializerMethodField(read_only=True)
+    number_clients = serializers.SerializerMethodField(read_only=True)
+    number_pending_policies = serializers.SerializerMethodField(read_only=True)
+    number_insured_vehicles = serializers.SerializerMethodField(read_only=True)
+
+    def get_number_branches(self, obj):
+        return Location.objects.aggregate(number=Count('id')).get('number', 0)
+
+    def get_number_clients(self, obj):
+        if obj.is_superuser:
+            return User.objects.filter(is_staff=False).aggregate(number=Count('id')).get('number', 0)
+        else:
+            return len(Policy.objects.filter(
+                created_by_id=obj.id
+            ).values('taker_id').distinct())
+
+    def get_number_pending_policies(self, obj):
+        if obj.is_superuser:
+            return Policy.objects.filter(
+                Q(status=Policy.PENDING_APPROVAL) | Q(status=Policy.OUTSTANDING)
+            ).aggregate(number=Count('id')).get('number', 0)
+        else:
+            return Policy.objects.filter(
+                Q(Q(status=Policy.PENDING_APPROVAL) | Q(status=Policy.OUTSTANDING)) & Q(created_by_id=obj.id)
+            ).aggregate(number=Count('id')).get('number', 0)
+
+    def get_number_insured_vehicles(self, obj: User):
+        if obj.is_superuser:
+            return len(Policy.objects.filter(
+                Q(status=Policy.PASSED) | Q(status=Policy.EXPIRED)
+            ).values('vehicle_id').distinct())
+        else:
+            return len(Policy.objects.filter(
+                Q(Q(status=Policy.PASSED) | Q(status=Policy.EXPIRED)) & Q(created_by_id=obj.id)
+            ).values('vehicle_id').distinct())
+
+    class Meta:
+        model = User
+        fields = ('number_branches', 'number_clients', 'number_pending_policies', 'number_insured_vehicles',)

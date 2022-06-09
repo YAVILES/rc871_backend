@@ -33,7 +33,7 @@ from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer,
     UseDefaultSerializer, PlanDefaultSerializer, CoverageDefaultSerializer, PremiumDefaultSerializer, \
     ModelDefaultSerializer, MarkDefaultSerializer, VehicleDefaultSerializer, MunicipalityDefaultSerializer, \
     CityDefaultSerializer, StateDefaultSerializer, PolicyDefaultSerializer, HistoricalChangeRateDefaultSerializer, \
-    PlanWithCoverageSerializer
+    PlanWithCoverageSerializer, HomeDataSerializer
 from rc871_backend.utils.functions import format_headers_import
 
 
@@ -980,3 +980,12 @@ class CoinAPIView(APIView):
                 'description': CurrencyHelper._CURRENCY_DATA[coin]['display_name']
             } for coin in settings.COINS
         ], status=status.HTTP_200_OK)
+
+
+class HomeDataAPIView(APIView):
+    permission_classes = (AllowAny,)
+    authentication_classes = []
+
+    def get(self, request):
+        data = HomeDataSerializer(self.request.user).data
+        return Response(data, status=status.HTTP_200_OK)
