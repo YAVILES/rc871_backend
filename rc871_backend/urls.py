@@ -22,6 +22,7 @@ from drf_yasg2.views import get_schema_view
 from drf_yasg2 import openapi
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
+from apps.core.views import CoinAPIView
 from apps.security.views import CustomTokenObtainPairView
 
 schema_view = get_schema_view(
@@ -45,6 +46,8 @@ urlpatterns = [
     path('api/security/', include('apps.security.urls')),
     path('api/system/', include('apps.system.urls')),
     path('api/payment/', include('apps.payment.urls')),
+
+    path('api/coin/', CoinAPIView.as_view()),
 
     # Tokens
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),

@@ -3,7 +3,7 @@ from django.db import models
 
 # Create your models here.
 from django.db.models.signals import post_save
-from money.currency import Currency
+from money.currency import Currency, CurrencyHelper
 from multiselectfield import MultiSelectField
 from rest_framework import serializers
 from sequences import get_next_value
@@ -11,6 +11,7 @@ from sequences import get_next_value
 from apps.core.models import ModelBase, Policy
 from django.utils.translation import ugettext_lazy as _
 
+from rc871_backend.settings import COINS
 from rc871_backend.utils.functions import format_coin
 
 TRANSFER = 0
@@ -33,6 +34,7 @@ def bank_archive_path(bank: 'Bank', file_name):
 
 
 class Bank(ModelBase):
+    COINS_VALUES = [(coin.value, _(CurrencyHelper._CURRENCY_DATA[coin]['display_name'])) for coin in COINS]
     INACTIVE = 0
     ACTIVE = 1
     code = models.CharField(verbose_name=_('code'), max_length=255, blank=True, unique=True)
@@ -42,6 +44,9 @@ class Bank(ModelBase):
     account_name = models.CharField(max_length=255, verbose_name=_('account_name'), null=True, blank=True)
     image = models.ImageField(verbose_name=_('image'), upload_to=bank_archive_path, null=True)
     methods = MultiSelectField(verbose_name=_('methods'), choices=METHODS, min_choices=1, default=None)
+    coins = MultiSelectField(
+        verbose_name=_('coins'), choices=COINS_VALUES, min_choices=1, default=None
+    )
     status = models.SmallIntegerField(verbose_name=_('status'), default=ACTIVE, choices=(
         (ACTIVE, _('activo')),
         (INACTIVE, _('inactivo'))
@@ -103,10 +108,18 @@ def post_save_payment(sender, instance: Payment, raw=False, **kwargs):
         return
     created = kwargs['created']
     try:
-        if not created and instance.policy and instance.status == Payment.ACCEPTED:
+        if instance.policy:
             policy = instance.policy
-            policy.status = Policy.PASSED
-            policy.save(update_fields=['status'])
+            if created:
+                if instance.status == Payment.PENDING:
+                    policy.status = Policy.PENDING_APPROVAL
+                    policy.save(update_fields=['status'])
+            else:
+                if instance.status == Payment.ACCEPTED:
+                    policy = instance.policy
+                    policy.status = Policy.PASSED
+                    policy.save(update_fields=['status'])
+
     except ValueError as e:
         raise serializers.ValidationError(detail={'error': _(e.__str__())})
 

@@ -12,11 +12,13 @@ from django.db.models import Q
 from django.http import FileResponse, HttpResponse
 from django.template.loader import render_to_string
 from django_filters.rest_framework import DjangoFilterBackend
+from money.currency import Currency, CurrencyHelper
 from rest_framework import status, serializers
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from six import BytesIO
 from tablib import Dataset
@@ -965,3 +967,16 @@ class HistoricalChangeRateViewSet(ModelViewSet):
                 }, status=status.HTTP_200_OK)
         except ValueError as e:
             return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CoinAPIView(APIView):
+    permission_classes = (AllowAny,)
+    authentication_classes = []
+
+    def get(self, request):
+        return Response([
+            {
+                'value': coin.value,
+                'description': CurrencyHelper._CURRENCY_DATA[coin]['display_name']
+            } for coin in settings.COINS
+        ], status=status.HTTP_200_OK)

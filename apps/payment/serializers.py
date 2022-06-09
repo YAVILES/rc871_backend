@@ -1,16 +1,12 @@
-from decimal import Decimal
-
-from constance import config
 from constance.backends.database.models import Constance
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django_restql.mixins import DynamicFieldsMixin
-from rest_framework import serializers
-
+from rest_framework import serializers, fields
 from apps.core.models import Policy
 from apps.core.serializers import PolicyDefaultSerializer
-from apps.payment.models import Bank, Payment
+from apps.payment.models import Bank, Payment, METHODS
 from apps.security.models import User
 from apps.security.serializers import UserSimpleSerializer
 
@@ -18,6 +14,10 @@ from apps.security.serializers import UserSimpleSerializer
 class BankDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     image = serializers.SerializerMethodField(required=False, read_only=True)
     status_display = serializers.CharField(max_length=255, read_only=True, source="get_status_display")
+    coins = fields.MultipleChoiceField(choices=Bank.COINS_VALUES)
+    coins_display = serializers.CharField(max_length=255, source="get_coins_display", read_only=True)
+    methods = fields.MultipleChoiceField(choices=METHODS)
+    methods_display = serializers.CharField(max_length=255, source="get_methods_display", read_only=True)
 
     def get_image(self, obj: Bank):
         if obj.image and hasattr(obj.image, 'url'):
@@ -32,6 +32,7 @@ class BankDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
 
 class PaymentDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault(), write_only=True)
     archive_display = serializers.SerializerMethodField(read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     method_display = serializers.CharField(source='get_method_display', read_only=True)

@@ -36,6 +36,13 @@ class BankViewSet(ModelViewSet):
     permission_classes = (AllowAny,)
     authentication_classes = []
 
+    def get_queryset(self):
+        coin = self.request.query_params.get('coin', None)
+        queryset = self.queryset
+        if coin:
+            return queryset.filter(coins__contains=coin)
+        return queryset
+
     def paginate_queryset(self, queryset):
         """
         Return a single page of results, or `None` if pagination is disabled.

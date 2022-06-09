@@ -269,7 +269,7 @@ IMPORT_EXPORT_USE_TRANSACTIONS = True
 IMPORT_EXPORT_IMPORT_PERMISSION_CODE = 'change'
 
 CONSTANCE_CONFIG = {
-    #'IVA': (12.00, "Impuesto al Valor Agregado (IVA)", float),
+    # 'IVA': (12.00, "Impuesto al Valor Agregado (IVA)", float),
     'CHANGE_FACTOR': (0, "Factor de cambio Bs", float),
     'ADVISER_DEFAULT_ID': (None, "Asesor por Defecto", str),
 }
@@ -299,11 +299,16 @@ INTERNAL_IPS = [
 
 # HTTPS:
 # USE_X_FORWARDED_HOST = True
-#SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # SECURE_SSL_REDIRECT = True
 # SESSION_COOKIE_SECURE = True
 # CSRF_COOKIE_SECURE = True
-#SECURE_HSTS_PRELOAD = True
-#SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
 TIMEOUT = None
+
+COINS = [
+    Currency.USD,
+    Currency.VEF
+]
