@@ -98,6 +98,10 @@ class Payment(ModelBase):
         return '{} {}'.format(format_coin(self.coin), str(self.amount))
 
     @property
+    def change_factor_display(self):
+        return '{} {}'.format(format_coin(Currency.VEF.value), str(self.change_factor))
+
+    @property
     def total_full_bs_display(self):
         amount = self.total_full_bs
         return '{} {}'.format(format_coin(Currency.VEF.value), str(amount))
@@ -110,15 +114,12 @@ def post_save_payment(sender, instance: Payment, raw=False, **kwargs):
     try:
         if instance.policy:
             policy = instance.policy
-            if created:
-                if instance.status == Payment.PENDING:
-                    policy.status = Policy.PENDING_APPROVAL
-                    policy.save(update_fields=['status'])
-            else:
-                if instance.status == Payment.ACCEPTED:
-                    policy = instance.policy
-                    policy.status = Policy.PASSED
-                    policy.save(update_fields=['status'])
+            if instance.status == Payment.PENDING:
+                policy.status = Policy.PENDING_APPROVAL
+                policy.save(update_fields=['status'])
+            elif instance.status == Payment.ACCEPTED and not policy.payments.filter(status=Payment.PENDING).exists():
+                policy.status = Policy.PASSED
+                policy.save(update_fields=['status'])
 
     except ValueError as e:
         raise serializers.ValidationError(detail={'error': _(e.__str__())})
