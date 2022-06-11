@@ -26,7 +26,7 @@ from django_filters import rest_framework as filters
 from django.utils.translation import ugettext_lazy as _
 
 from apps.core.admin import BannerResource, StateResource, CityResource, MunicipalityResource, MarkResource, \
-    ModelVehicleResource, HistoricalChangeRateResource
+    ModelVehicleResource, HistoricalChangeRateResource, VehicleResource
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
     Municipality, Policy, HistoricalChangeRate, file_policy_path
 from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
@@ -83,7 +83,10 @@ class BannerViewSet(ModelViewSet):
     @action(methods=['GET'], detail=False)
     def export(self, request):
         dataset = BannerResource().export()
-        return Response(dataset.csv, status=status.HTTP_200_OK)
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=marcas.xlsx'
+        response.write(dataset.xlsx)
+        return response
 
     @action(methods=['POST'], detail=False)
     def _import(self, request):
@@ -378,6 +381,14 @@ class MarkViewSet(ModelViewSet):
         except ValueError as e:
             return Response(e, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(methods=['GET'], detail=False)
+    def export(self, request):
+        dataset = MarkResource().export()
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=marcas.xlsx'
+        response.write(dataset.xlsx)
+        return response
+
 
 class ModelFilter(filters.FilterSet):
     class Meta:
@@ -390,7 +401,7 @@ class ModelVehicleViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = ModelFilter
     serializer_class = ModelDefaultSerializer
-    search_fields = ['mark', 'description', 'mark__description']
+    search_fields = ['description', 'mark__description']
     permission_classes = (AllowAny,)
 
     def paginate_queryset(self, queryset):
@@ -456,6 +467,14 @@ class ModelVehicleViewSet(ModelViewSet):
                 }, status=status.HTTP_200_OK)
         except ValueError as e:
             return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['GET'], detail=False)
+    def export(self, request):
+        dataset = ModelVehicleResource().export()
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=modelos.xlsx'
+        response.write(dataset.xlsx)
+        return response
 
 
 class VehicleFilter(filters.FilterSet):
@@ -563,6 +582,70 @@ class VehicleViewSet(ModelViewSet):
         if self.paginator is None or not_paginator:
             return None
         return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+    @action(methods=['POST'], detail=False)
+    def _import(self, request):
+        try:
+            resource = VehicleResource()
+            errors = []
+            invalids = []
+            if request.FILES:
+                file = request.FILES['file']
+                data_set = Dataset()
+                data_set.load(file.read())
+                data_set.headers = data_set.headers
+                result = resource.import_data(data_set, dry_run=True)  # Test the data import
+            else:
+                headers = request.data['headers']
+                data_set = tablib.Dataset(headers=headers)
+                for d in request.data['data']:
+                    data_set.append(d)
+                result = resource.import_data(data_set, dry_run=True)
+
+            if result.has_errors() or len(result.invalid_rows) > 0:
+                for row in result.invalid_rows:
+                    invalids.append(
+                        {
+                            "row": row.number + 1,
+                            "error": row.error,
+                            "error_dict": row.error_dict,
+                            "values": row.values
+                        }
+                    )
+
+                for row in result.row_errors():
+                    err = row[1]
+                    errors.append(
+                        {
+                            "errors": [e.error.__str__() for e in err],
+                            "values": err[0].row,
+                            "row": row[0]
+                        }
+                    )
+
+                return Response({
+                    "rows_error": errors,
+                    "invalid_rows": invalids,
+                    "totals": result.totals,
+                    "total_rows": result.total_rows,
+                }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                result = resource.import_data(data_set, dry_run=False)  # Actually import now
+                return Response({
+                    "totals": result.totals,
+                    "total_rows": result.total_rows,
+                }, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
+
+    @action(methods=['GET'], detail=False)
+    def export(self, request):
+        dataset = VehicleResource().export()
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=modelos.xlsx'
+        response.write(dataset.xlsx)
+        return response
 
 
 class StateFilter(filters.FilterSet):

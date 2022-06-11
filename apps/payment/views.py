@@ -1,7 +1,7 @@
 import tablib
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 from rest_framework import mixins
 
 # Create your views here.
@@ -13,7 +13,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from tablib import Dataset
 
-from apps.payment.admin import BankResource
+from apps.payment.admin import BankResource, PaymentResource
 from apps.payment.models import Bank, Payment
 from django_filters import rest_framework as filters
 from rest_framework.response import Response
@@ -34,7 +34,6 @@ class BankViewSet(ModelViewSet):
     serializer_class = BankDefaultSerializer
     search_fields = ['code', 'description']
     permission_classes = (AllowAny,)
-    authentication_classes = []
 
     def get_queryset(self):
         coin = self.request.query_params.get('coin', None)
@@ -55,7 +54,10 @@ class BankViewSet(ModelViewSet):
     @action(methods=['GET'], detail=False)
     def export(self, request):
         dataset = BankResource().export()
-        return Response(dataset.csv, status=status.HTTP_200_OK)
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=bancos.xlsx'
+        response.write(dataset.xlsx)
+        return response
 
     @action(methods=['POST'], detail=False)
     def _import(self, request):
@@ -111,9 +113,15 @@ class BankViewSet(ModelViewSet):
         except ValueError as e:
             return Response(e, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(methods=['GET'], detail=True)
+    def download_image(self, request, pk):
+        bank = self.get_object()
+        filename = bank.image.path
+        response = FileResponse(open(filename, 'rb'))
+        return response
+
 
 class PaymentFilter(filters.FilterSet):
-
     class Meta:
         model = Payment
         fields = ['number', 'status', 'bank_id', 'method', 'policy_id', 'user_id', 'amount']
@@ -242,10 +250,10 @@ class PaymentViewSet(
         else:
             return Response({"error": "the field parameter is mandatory"}, status=status.HTTP_400_BAD_REQUEST)
 
-    # @action(methods=['GET'], detail=False)
-    # def export(self, request):
-    #     dataset = PaymentResource().export()
-    #     response = HttpResponse(content_type='application/vnd.ms-excel')
-    #     response['Content-Disposition'] = 'attachment; filename=cobros.xlsx'
-    #     response.write(dataset.xlsx)
-    #     return response
+    @action(methods=['GET'], detail=False)
+    def export(self, request):
+        dataset = PaymentResource().export()
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=cobros.xlsx'
+        response.write(dataset.xlsx)
+        return response

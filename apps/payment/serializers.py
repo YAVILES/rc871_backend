@@ -13,16 +13,17 @@ from apps.security.serializers import UserSimpleSerializer
 
 
 class BankDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    image = serializers.SerializerMethodField(required=False, read_only=True)
+    image = serializers.ImageField(required=False)
+    image_display = serializers.SerializerMethodField(required=False, read_only=True)
     status_display = serializers.CharField(max_length=255, read_only=True, source="get_status_display")
     coins = fields.MultipleChoiceField(choices=Bank.COINS_VALUES)
     coins_display = serializers.CharField(max_length=255, source="get_coins_display", read_only=True)
     methods = fields.MultipleChoiceField(choices=METHODS)
     methods_display = serializers.CharField(max_length=255, source="get_methods_display", read_only=True)
 
-    def get_image(self, obj: Bank):
+    def get_image_display(self, obj: Bank):
         if obj.image and hasattr(obj.image, 'url'):
-            image_url = obj.imul
+            image_url = obj.image.url
             return image_url
         else:
             return None

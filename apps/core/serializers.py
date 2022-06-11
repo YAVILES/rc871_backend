@@ -18,11 +18,11 @@ from apps.security.serializers import UserDefaultSerializer
 
 
 class BannerDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    image = serializers.SerializerMethodField(required=False, read_only=True)
+    image_display = serializers.SerializerMethodField(required=False, read_only=True)
 
-    def get_image(self, obj: Banner):
+    def get_image_display(self, obj: Banner):
         if obj.image and hasattr(obj.image, 'url'):
-            image_url = obj.imul
+            image_url = obj.image.url
             return image_url
         else:
             return None
