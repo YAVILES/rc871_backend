@@ -99,7 +99,6 @@ class BranchOffice(ModelBase):
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
     link_google_maps = models.CharField(null=True, blank=True, max_length=350, verbose_name=_('link google maps'))
     geo_location = geo_models.PointField(verbose_name=_('geo location'), null=True)
-    last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
 
     def __str__(self):
         return self.description
@@ -114,7 +113,6 @@ class Use(ModelBase):
     code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
     description = models.CharField(max_length=100, verbose_name=_('description'))
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
-    last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
 
     def __str__(self):
         return self.description
@@ -134,7 +132,6 @@ class Plan(ModelBase):
         blank=True,
     )
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
-    last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
 
     @property
     def coverage(self):
@@ -161,7 +158,6 @@ class Coverage(ModelBase):
     )
     default = models.BooleanField(verbose_name=_('default'), default=False)
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
-    last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
 
     def __str__(self):
         return self.description
@@ -178,7 +174,6 @@ class Premium(ModelBase):
     plan = models.ForeignKey(Plan, verbose_name=_('plan'), on_delete=models.PROTECT, null=True)
     insured_amount = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('price'), default=0.0)
     cost = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('cost'), default=0.0)
-    last_sync_date = models.DateTimeField(null=True, blank=True, verbose_name=_('last sync date'))
 
     @property
     def insured_amount_display(self):

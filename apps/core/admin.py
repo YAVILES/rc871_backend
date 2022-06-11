@@ -4,9 +4,10 @@ from import_export.fields import Field
 from django.contrib import admin
 from django.core.exceptions import ValidationError, ObjectDoesNotExist, MultipleObjectsReturned
 from import_export.resources import ModelResource
-from import_export.widgets import ForeignKeyWidget
+from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
-from apps.core.models import Banner, State, City, Municipality, Mark, Model, HistoricalChangeRate, Use, Vehicle
+from apps.core.models import Banner, State, City, Municipality, Mark, Model, HistoricalChangeRate, Use, Vehicle, \
+    BranchOffice, Plan, Coverage, Premium
 from apps.security.models import User
 
 
@@ -22,6 +23,78 @@ class BannerResource(ModelResource):
         model = Banner
         exclude = ('id', 'created', 'updated', 'image',)
         import_id_fields = ('title',)
+
+
+class BranchOfficeResource(ModelResource):
+    number = Field(attribute='number', column_name='Nro.', readonly=True)
+    code = Field(attribute='code', column_name='Código')
+    description = Field(attribute='description', column_name='Descripcion')
+    link_google_maps = Field(attribute='link_google_maps', column_name='Link Google Maps')
+    is_active = Field(attribute='is_active', column_name='Activo')
+
+    class Meta:
+        model = BranchOffice
+        exclude = ('id', 'created', 'updated', 'geo_location',)
+        import_id_fields = ('code',)
+
+
+class UseResource(ModelResource):
+    code = Field(attribute='code', column_name='Código')
+    description = Field(attribute='description', column_name='Descripcion')
+    is_active = Field(attribute='is_active', column_name='Activo')
+
+    class Meta:
+        model = Use
+        exclude = ('id', 'created', 'updated',)
+        import_id_fields = ('code',)
+
+
+class PlanResource(ModelResource):
+    code = Field(attribute='code', column_name='Código')
+    description = Field(attribute='description', column_name='Descripcion')
+    uses = Field(
+        attribute='uses', widget=ManyToManyWidget(Mark, ',', 'description'), column_name='Usos'
+    )
+    is_active = Field(attribute='is_active', column_name='Activo')
+
+    class Meta:
+        model = Plan
+        exclude = ('id', 'created', 'updated',)
+        import_id_fields = ('code',)
+
+
+class CoverageResource(ModelResource):
+    code = Field(attribute='code', column_name='Código')
+    description = Field(attribute='description', column_name='Descripcion')
+    plans = Field(
+        attribute='plans', widget=ManyToManyWidget(Plan, ',', 'description'), column_name='Planes'
+    )
+    default = Field(attribute='default', column_name='Por Defecto')
+    is_active = Field(attribute='is_active', column_name='Activo')
+
+    class Meta:
+        model = Coverage
+        exclude = ('id', 'created', 'updated',)
+        import_id_fields = ('code',)
+
+
+class PremiumResource(ModelResource):
+    coverage = Field(
+        attribute='coverage', widget=ForeignKeyWidget(Coverage, 'description'), column_name='Cobertura'
+    )
+    use = Field(
+        attribute='use', widget=ForeignKeyWidget(Use, 'description'), column_name='Uso'
+    )
+    plan = Field(
+        attribute='plan', widget=ForeignKeyWidget(Plan, 'description'), column_name='Plan'
+    )
+    insured_amount = Field(attribute='insured_amount', column_name='Monto Asegurado')
+    cost = Field(attribute='cost', column_name='Costo')
+
+    class Meta:
+        model = Premium
+        exclude = ('id', 'created', 'updated',)
+        import_id_fields = ('coverage', 'use', 'plan',)
 
 
 class StateResource(ModelResource):

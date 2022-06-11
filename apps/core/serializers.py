@@ -13,6 +13,7 @@ from rest_framework.exceptions import ValidationError
 
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
     Municipality, Policy, PolicyCoverage, HistoricalChangeRate, Location
+from apps.payment.models import Payment
 from apps.security.models import User
 from apps.security.serializers import UserDefaultSerializer
 
@@ -586,12 +587,12 @@ class HomeDataSerializer(serializers.ModelSerializer):
     number_clients = serializers.SerializerMethodField(read_only=True)
     number_pending_policies = serializers.SerializerMethodField(read_only=True)
     number_insured_vehicles = serializers.SerializerMethodField(read_only=True)
+    pending_payments = serializers.SerializerMethodField(read_only=True)
 
     def get_number_branches(self, obj: User):
         return Location.objects.aggregate(number=Count('id')).get('number', 0)
 
     def get_number_clients(self, obj: User):
-        print(obj.username, obj.is_superuser)
         if obj.is_superuser:
             return User.objects.filter(
                 is_staff=False, is_superuser=False, is_adviser=False
@@ -611,7 +612,7 @@ class HomeDataSerializer(serializers.ModelSerializer):
                 Q(Q(status=Policy.PENDING_APPROVAL) | Q(status=Policy.OUTSTANDING)) & Q(created_by_id=obj.id)
             ).aggregate(number=Count('id')).get('number', 0)
 
-    def get_number_insured_vehicles(self, obj: User):
+    def get_pending_payments(self, obj: User):
         if obj.is_superuser:
             return len(Policy.objects.filter(
                 Q(status=Policy.PASSED) | Q(status=Policy.EXPIRED)
@@ -621,6 +622,15 @@ class HomeDataSerializer(serializers.ModelSerializer):
                 Q(Q(status=Policy.PASSED) | Q(status=Policy.EXPIRED)) & Q(created_by_id=obj.id)
             ).values('vehicle_id').distinct())
 
+    def get_number_insured_vehicles(self, obj: User):
+        if obj.is_superuser:
+            return Payment.objects.filter(status=Payment.PENDING).aggregate(quantity=Count('id')).get('quantity', 0)
+        else:
+            return Payment.objects.filter(
+                status=Payment.PENDING, user_id=obj.id
+            ).aggregate(quantity=Count('id')).get('quantity', 0)
+
     class Meta:
         model = User
-        fields = ('number_branches', 'number_clients', 'number_pending_policies', 'number_insured_vehicles',)
+        fields = ('number_branches', 'number_clients', 'number_pending_policies', 'number_insured_vehicles',
+                  'pending_payments',)
