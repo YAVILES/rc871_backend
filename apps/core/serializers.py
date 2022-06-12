@@ -138,7 +138,7 @@ class CoveragePlanSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             try:
                 premium = Premium.objects.get(plan_id=plan, coverage_id=obj.id, use_id=use)
                 return PremiumCoverageSerializer(
-                    premium, exclude=['created', 'updated', 'last_sync_date']
+                    premium, exclude=['created', 'updated']
                 ).data
             except ObjectDoesNotExist:
                 return None

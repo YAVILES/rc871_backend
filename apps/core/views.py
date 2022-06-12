@@ -1272,6 +1272,35 @@ class PolicyViewSet(ModelViewSet):
 
         return response
 
+    @action(methods=['GET'], detail=True)
+    def download_pdf(self, request, pk):
+        policy = self.get_object()
+        if policy.file and path.exists(policy.file.path):
+            filename = policy.file.path
+            response = FileResponse(open(filename, 'rb'))
+        else:
+            if policy.qrcode and path.exists(policy.qrcode.path):
+                remove(policy.qrcode.path)
+
+            data = file_policy_path(policy, '{0}.pdf'.format(str(policy.number)))
+            img = qrcode.make(settings.MEDIA_URL + data)
+            buf = BytesIO()  # BytesIO se da cuenta de leer y escribir bytes en la memoria
+            img.save(buf)
+            image_stream = buf.getvalue()
+            qr_image = ImageFile(io.BytesIO(image_stream), name='qrcode.png')
+            policy.qrcode = qr_image
+            policy.save(update_fields=['qrcode'])
+            context = PolicyDefaultSerializer(policy, context=self.get_serializer_context()).data
+            html = render_to_string("report-pdf.html", context)
+            pdf = pdfkit.from_string(html, False)
+            pdf_file = File(io.BytesIO(pdf), name='{0}.pdf'.format(str(policy.number)))
+            policy.file = pdf_file
+            policy.save()
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="ourcodeworld.pdf"'
+
+        return response
+
     @action(methods=['GET'], detail=False)
     def export(self, request):
         dataset = PolicyResource().export()
