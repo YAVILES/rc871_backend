@@ -590,7 +590,7 @@ class HomeDataSerializer(serializers.ModelSerializer):
     pending_payments = serializers.SerializerMethodField(read_only=True)
 
     def get_number_branches(self, obj: User):
-        return Location.objects.aggregate(number=Count('id')).get('number', 0)
+        return BranchOffice.objects.aggregate(quantity=Count('id')).get('quantity', 0)
 
     def get_number_clients(self, obj: User):
         if obj.is_superuser:
@@ -634,3 +634,25 @@ class HomeDataSerializer(serializers.ModelSerializer):
         model = User
         fields = ('number_branches', 'number_clients', 'number_pending_policies', 'number_insured_vehicles',
                   'pending_payments',)
+
+
+class PolicyForBranchOfficeSerializer(serializers.ModelSerializer):
+    quantity = serializers.SerializerMethodField(read_only=True)
+
+    def get_quantity(self, obj: BranchOffice):
+        return 50
+        request = self.context.get("request")
+        user = request.user
+        if user.is_superuser:
+            return Policy.objects.filter(
+                created_by__branch_office_id=obj.id
+            ).aggregate(quantity=Count('id')).get('quantity', 0)
+        else:
+            return Policy.objects.filter(
+                created_by__branch_office_id=obj.id,
+                created_by_id=user.id
+            ).aggregate(quantity=Count('id')).get('quantity', 0)
+
+    class Meta:
+        model = BranchOffice
+        fields = ('id', 'number', 'description', 'quantity',)

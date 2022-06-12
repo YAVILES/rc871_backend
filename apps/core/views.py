@@ -19,7 +19,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from six import BytesIO
 from tablib import Dataset
 from django_filters import rest_framework as filters
@@ -34,7 +34,7 @@ from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer,
     UseDefaultSerializer, PlanDefaultSerializer, CoverageDefaultSerializer, PremiumDefaultSerializer, \
     ModelDefaultSerializer, MarkDefaultSerializer, VehicleDefaultSerializer, MunicipalityDefaultSerializer, \
     CityDefaultSerializer, StateDefaultSerializer, PolicyDefaultSerializer, HistoricalChangeRateDefaultSerializer, \
-    PlanWithCoverageSerializer, HomeDataSerializer
+    PlanWithCoverageSerializer, HomeDataSerializer, PolicyForBranchOfficeSerializer
 
 
 class BannerFilter(filters.FilterSet):
@@ -947,7 +947,6 @@ class VehicleViewSet(ModelViewSet):
         except ValueError as e:
             return Response(e, status=status.HTTP_400_BAD_REQUEST)
 
-
     @action(methods=['GET'], detail=False)
     def export(self, request):
         dataset = VehicleResource().export()
@@ -1248,37 +1247,9 @@ class PolicyViewSet(ModelViewSet):
     @action(methods=['GET'], detail=True)
     def pdf(self, request, pk):
         policy = self.get_object()
-        if policy.file and path.exists(policy.file.path):
-            remove(policy.file.path)
-        if policy.qrcode and path.exists(policy.qrcode.path):
-            remove(policy.qrcode.path)
-
-        data = file_policy_path(policy, '{0}.pdf'.format(str(policy.number)))
-        img = qrcode.make(settings.MEDIA_URL + data)
-        buf = BytesIO()  # BytesIO se da cuenta de leer y escribir bytes en la memoria
-        img.save(buf)
-        image_stream = buf.getvalue()
-        qr_image = ImageFile(io.BytesIO(image_stream), name='qrcode.png')
-        policy.qrcode = qr_image
-        policy.save(update_fields=['qrcode'])
-        context = PolicyDefaultSerializer(policy, context=self.get_serializer_context()).data
-        html = render_to_string("report-pdf.html", context)
-        pdf = pdfkit.from_string(html, False)
-        pdf_file = File(io.BytesIO(pdf), name='{0}.pdf'.format(str(policy.number)))
-        policy.file = pdf_file
-        policy.save()
-        response = HttpResponse(pdf, content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="ourcodeworld.pdf"'
-
-        return response
-
-    @action(methods=['GET'], detail=True)
-    def download_pdf(self, request, pk):
-        policy = self.get_object()
-        if policy.file and path.exists(policy.file.path):
-            filename = policy.file.path
-            response = FileResponse(open(filename, 'rb'))
-        else:
+        if policy.status == Policy.PASSED:
+            if policy.file and path.exists(policy.file.path):
+                remove(policy.file.path)
             if policy.qrcode and path.exists(policy.qrcode.path):
                 remove(policy.qrcode.path)
 
@@ -1297,8 +1268,43 @@ class PolicyViewSet(ModelViewSet):
             policy.file = pdf_file
             policy.save()
             response = HttpResponse(pdf, content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="ourcodeworld.pdf"'
+            response['Content-Disposition'] = 'attachment; filename="policy.pdf"'
+        else:
+            raise serializers.ValidationError(
+                detail={'error': _("La poliza {0} no esta aprobada".format(policy.number))})
 
+        return response
+
+    @action(methods=['GET'], detail=True)
+    def download_pdf(self, request, pk):
+        policy = self.get_object()
+        if policy.status == Policy.PASSED:
+            if policy.file and path.exists(policy.file.path):
+                filename = policy.file.path
+                response = FileResponse(open(filename, 'rb'))
+            else:
+                if policy.qrcode and path.exists(policy.qrcode.path):
+                    remove(policy.qrcode.path)
+
+                data = file_policy_path(policy, '{0}.pdf'.format(str(policy.number)))
+                img = qrcode.make(settings.MEDIA_URL + data)
+                buf = BytesIO()  # BytesIO se da cuenta de leer y escribir bytes en la memoria
+                img.save(buf)
+                image_stream = buf.getvalue()
+                qr_image = ImageFile(io.BytesIO(image_stream), name='qrcode.png')
+                policy.qrcode = qr_image
+                policy.save(update_fields=['qrcode'])
+                context = PolicyDefaultSerializer(policy, context=self.get_serializer_context()).data
+                html = render_to_string("report-pdf.html", context)
+                pdf = pdfkit.from_string(html, False)
+                pdf_file = File(io.BytesIO(pdf), name='{0}.pdf'.format(str(policy.number)))
+                policy.file = pdf_file
+                policy.save()
+                response = HttpResponse(pdf, content_type='application/pdf')
+                response['Content-Disposition'] = 'attachment; filename="policy.pdf"'
+        else:
+            raise serializers.ValidationError(
+                detail={'error': _("La poliza {0} no esta aprobada".format(policy.number))})
         return response
 
     @action(methods=['GET'], detail=False)
@@ -1410,9 +1416,25 @@ class CoinAPIView(APIView):
         ], status=status.HTTP_200_OK)
 
 
-class HomeDataAPIView(APIView):
+class HomeDataAPIView(GenericViewSet):
     permission_classes = (AllowAny,)
 
-    def get(self, request):
+    def get_serializer_class(self):
+        if self.action == 'data':
+            return HomeDataSerializer
+        if self.action == 'policy_for_branch_office':
+            return PolicyForBranchOfficeSerializer
+
+    @action(methods=['GET', ], detail=False)
+    def data(self, request):
         data = HomeDataSerializer(self.request.user).data
+        return Response(data, status=status.HTTP_200_OK)
+
+    @action(methods=['GET', ], detail=False)
+    def policy_for_branch_office(self, request):
+        data = PolicyForBranchOfficeSerializer(
+            BranchOffice.objects.filter(is_active=True),
+            context=self.get_serializer_context(),
+            many=True
+        ).data
         return Response(data, status=status.HTTP_200_OK)
