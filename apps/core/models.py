@@ -486,11 +486,11 @@ class PolicyCoverage(ModelBase):
 
     @property
     def cost_change(self):
-        return float(format(self.insured_amount * Decimal(self.policy.change_factor), ".2f"))
+        return float(format(self.cost * Decimal(self.policy.change_factor), ".2f"))
 
     @property
     def cost_change_display(self):
-        return '{} {}'.format(settings.CURRENCY_CHANGE_FORMAT, self.insured_amount_change)
+        return '{} {}'.format(settings.CURRENCY_CHANGE_FORMAT, self.cost_change)
 
     class Meta:
         verbose_name = _('item')

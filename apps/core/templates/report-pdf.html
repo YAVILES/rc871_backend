@@ -2,85 +2,104 @@
 {% block content %}
 <table class="table table-sm">
      <tr>
-        <td rowspan="2">Columna 1</td>
-        <td rowspan="2" class="text-center">
-            <h4><strong>ASOCIACIÓN COOPERATIVA <br> DE SEGUROS PARA VEHÍCULOS</strong></h4>
-            <h1><strong>RC 871 <span class="lead"><strong>R.L.</strong></span></strong></h1>
+        <td rowspan="2" style="border: 0px; padding: 0px; margin: 0px;">Logo</td>
+        <td rowspan="2" style="border: 0px; padding: 0px; margin: 0px;" class="text-center">
+            <h5><strong>ASOCIACIÓN COOPERATIVA <br> DE SEGUROS PARA VEHÍCULOS</strong></h5>
+            <h3><strong>RC 871 <span class="lead"><strong>R.L.</strong></span></strong></h3>
         </td>
-        <td>Nro. Poliza: <br> 0051792-{{number}}</td>
+        <td style="border: 0px; padding: 0px; margin: 0px;">Nro. Poliza: {{created_by_display.branch_office_display.number}}-{{number}}
+            <br> {{created_by_display.branch_office_display.description}}</td>
     </tr>
     <tr>
-        <td><strong>185</strong></td>
+        <td style="border: 0px; padding: 0px; margin: 0px;"><strong>{{created_by_display.number}}</strong></td>
     </tr>
 </table>
 <table class="table">
     <tr>
-        <td>
+        <td style="border: 0px; padding: 0px; margin: 0px;">
             <h6><strong>Inscrita en la SUDEASEG bajo el Nro. 14. Registro SUNACOOP 99982.</strong></h6>
             <p class="fs-6">
                 Reporte de siniestros y sugerencias: +58-414-42651197/412-1334214 <br>
                 email: cooperativa871@gmail.com
             </p>
         </td>
-        <td>
+        <td style="border: 0px; padding: 0px; margin: 0px;">
             <p>@segurosrc871</p>
         </td>
-        <td class="text-center">
+        <td class="text-center" style="border: 0px; padding: 0px; margin: 0px;">
             <img src="{{ qrcode }}" width="100">
         </td>
     </tr>
     <tr>
-        <td colspan="3">
-            <h5>POLIZA  DE SEGURO DE RESPONSABILIDAD CIVIL PARA AUTOMOVILES.</h5>
+        <td class="text-center" colspan="3" style="border: 0px; padding: 0px; margin: 0px;">
+            <h6>POLIZA  DE SEGURO DE RESPONSABILIDAD CIVIL PARA AUTOMOVILES.</h6>
         </td>
     </tr>
 </table>
-<h4>DATOS DEL TOMADOR Y ASEGURADO</h4>
 <table class="table table-bordered table-sm">
+    <tr align="center">
+        <th colspan="3">
+            <h6><strong>DATOS DEL ASEGURADO</strong></h6>
+        </th>
+    </tr>
      <tr>
-        <td>Cedula o Rif: V-23410567</td>
+        <td>Cedula o Rif: {{vehicle_display.owner_identity_card}}</td>
         <td>
-            Nombre: AVILES PONCE YONATHAN ALEXANDER
+            Nombre: {{vehicle_display.owner_last_name}} {{vehicle_display.owner_name}}
         </td>
-        <td>Telefonos: 04244444875</td>
+        <td>Telefonos: {{vehicle_display.owner_phones}}</td>
     </tr>
     <tr>
-        <td colspan="2">Dirección: Valencia</td>
-        <td>email: yonathanaviles123@gmail.com</td>
+        <td colspan="2">Dirección: {{vehicle_display.owner_address}}</td>
+        <td>email: {{vehicle_display.owner_email}}</td>
     </tr>
 </table>
-<h4>INFORMACION GENERAL</h4>
+
 <table class="table table-bordered table-sm">
+    <tr align="center">
+        <th colspan="6">
+            <h6><strong>INFORMACION GENERAL</strong></h6>
+        </th>
+    </tr>
      <tr>
-        <td>Tipo de Pago: Contado</td>
+        <td>Tipo de Pago: <br> Contado</td>
         <td>
-            Asesor: MARÍA SANCHEZ
+            Asesor: <br> {{adviser_display.full_name}}
         </td>
-        <td>Tipo de Poliza: RCV</td>
-        <td>Fecha de emisión: 27/01/2020 11:23:33 am</td>
-        <td>Fecha de vencimiento: 27/01/2021 11:23:33 am</td>
-        <td>Acción: NUEVA</td>
+        <td>Tipo de Poliza: <br> {{type_display}}</td>
+        <td>Fecha de emisión: <br> {{created_formated}}</td>
+        <td>Fecha de vencimiento: <br> {{due_date_formated}}</td>
+        <td>Acción: <br> {{action_display}}</td>
     </tr>
 </table>
-<h4>BIEN ASEGURADO</h4>
 <table class="table table-bordered table-sm">
+    <tr align="center">
+        <th colspan="5">
+            <h6><strong>BIEN ASEGURADO</strong></h6>
+        </th>
+    </tr>
      <tr>
-        <td>Marca: RENAULT</td>
-        <td>Modelo: TWINGO / FREE</td>
-        <td>Serial C.: 9FB238964832KHK8678</td>
-        <td>Serial M.: 9FB238964832KHK8678</td>
-        <td>Puestos: 4</td>
+        <td>Marca: {{vehicle_display.model_display.mark_display.description}}</td>
+        <td>Modelo: {{vehicle_display.model_display.description}}</td>
+        <td>Serial C.: {{vehicle_display.serial_bodywork}}</td>
+        <td>Serial M.: {{vehicle_display.serial_engine}}</td>
+        <td>Puestos: {{vehicle_display.stalls}}</td>
     </tr>
     <tr>
-        <td>Año: 2000</td>
-        <td>Uso: PARTICULAR - LIVIANO</td>
-        <td>Transmisión: Sincrónica</td>
-        <td>Placa: ADB602DU</td>
-        <td>Color: ROJO</td>
+        <td>Año: {{vehicle_display.year}}</td>
+        <td>Uso: {{vehicle_display.use_display.description}}</td>
+        <td>Transmisión: {{vehicle_display.transmission_display}}</td>
+        <td>Placa: {{vehicle_display.license_plate}}</td>
+        <td>Color: {{vehicle_display.color}}</td>
     </tr>
 </table>
-<h4>COBERTURAS</h4>
+
 <table class="table table-bordered table-sm">
+    <tr align="center">
+        <th colspan="5">
+            <h6><strong>COBERTURAS</strong></h6>
+        </th>
+    </tr>
     <tr>
         <th>BENEFICIOS</th>
         <th>TASA</th>
@@ -88,33 +107,60 @@
         <th>MONTO GARANTIZADO</th>
         <th>COSTO</th>
     </tr>
+    {% for item in items %}
+        <tr>
+            <td>{{item.coverage_display.description}}</td>
+            <td>{{change_factor}}</td>
+            <td>0.00</td>
+            <td>{{item.insured_amount_change_display}}</td>
+            <td>{{item.cost_change_display}}</td>
+        </tr>
+    {% endfor %}
+</table>
+<br>
+<br>
+
+<!--Targeta-->
+<table class="table table-sm target-table" style="width: 350px; font-size: 65%; margin: 0px; padding: 0px;">
     <tr>
-        <td>ASISTENCIA LEGAL</td>
-        <td>0.00</td>
-        <td>0.00</td>
-        <td>Bs. 400.00</td>
-        <td>Bs. 40.00</td>
+        <td colspan="2" style="border: 0px; padding: 0px; margin: 0px;">Poliza de Responsabilidad Civil</td>
+        <td style="border: 0px; padding: 0px; margin: 0px;">Nro. {{created_by_display.branch_office_display.number}}-{{number}}
+            <br> {{created_by_display.branch_office_display.description}}</td>
     </tr>
     <tr>
-        <td>ASISTENCIA LEGAL</td>
-        <td>0.00</td>
-        <td>0.00</td>
-        <td>Bs. 400.00</td>
-        <td>Bs. 40.00</td>
+        <td colspan="3" style="border: 0px; padding: 0px; margin: 0px;">
+            <strong>Inscrita en la SUDEASEG bajo el Nro. 14. Registro SUNACOOP 99982.</strong>
+        </td>
     </tr>
     <tr>
-        <td>DAÑOS A COSAS</td>
-        <td>0.00</td>
-        <td>0.00</td>
-        <td>Bs. 200.00</td>
-        <td>Bs. 20.00</td>
+        <td colspan="3" style="border: 0px; padding: 0px; margin: 0px;">
+            <strong>{{vehicle_display.owner_last_name}} {{vehicle_display.owner_name}}</strong>
+        </td>
     </tr>
     <tr>
-        <td>DAÑOS A OCUPANTES</td>
-        <td>0.00</td>
-        <td>0.00</td>
-        <td>Bs. 1.600.00</td>
-        <td>Bs. 400.00</td>
+        <td style="border: 0px; padding: 0px; margin: 0px;">{{vehicle_display.owner_identity_card}}</td>
+        <td style="width: 85px; border: 0px; padding: 0px; margin: 0px;">Placa AB602DU</td>
+        <td style="border: 0px; padding: 0px; margin: 0px;">2007</td>
+    </tr>
+    <tr>
+        <td style="border: 0px; padding: 0px; margin: 0px;">RENAULT</td>
+        <td style="border: 0px; padding: 0px; margin: 0px;">TWINGO FREE</td>
+        <td style="border: 0px; padding: 0px; margin: 0px;">ROJO</td>
+    </tr>
+    <tr>
+        <td style="width: 150px; border: 0px; padding: 0px; margin: 0px;">Serial C.: {{vehicle_display.serial_bodywork}}</td>
+        <td style="width: 0px; border: 0px; padding: 0px; margin: 0px;"></td>
+        <td style="width: 150px; border: 0px; padding: 0px; margin: 0px;">Serial M.: {{vehicle_display.serial_engine}}</td>
+    </tr>
+    <tr align="right">
+        <td style="border: 0px; padding: 0px; margin: 0px;" colspan="3">
+            <img src="{{ qrcode }}" width="55"> Logo
+        </td>
+    </tr>
+    <tr align="right">
+        <td style="border: 0px; padding: 0px; margin: 0px;" colspan="3">
+            <strong>Reporte de siniestros y Sugerencias: +58-4144251197</strong>
+        </td>
     </tr>
 </table>
 {% endblock %}
