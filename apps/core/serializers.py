@@ -640,7 +640,6 @@ class PolicyForBranchOfficeSerializer(serializers.ModelSerializer):
     quantity = serializers.SerializerMethodField(read_only=True)
 
     def get_quantity(self, obj: BranchOffice):
-        return 50
         request = self.context.get("request")
         user = request.user
         if user.is_superuser:
