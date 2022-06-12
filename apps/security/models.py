@@ -7,6 +7,8 @@ from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import PermissionsMixin
+from sequences import get_next_value
+
 from apps.core.models import ModelBase, BranchOffice, Municipality
 
 
@@ -113,9 +115,15 @@ class UserManager(BaseUserManager):
         return self._create_user(email, name, last_name, password, database, **extra_fields)
 
 
+def get_user_number():
+    return get_next_value('user_number')
+
+
 class User(AbstractBaseUser, PermissionsMixin, ModelBase):
     code = models.CharField(max_length=255, verbose_name=_('code'), null=True, unique=True,
                             help_text="Código que se usaría para las sincronización con apps externas")
+    number = models.PositiveIntegerField(verbose_name='Number', primary_key=False, db_index=True, null=True,
+                                         default=get_user_number)
     username = models.CharField(max_length=50, verbose_name=_('username'), null=True, unique=True)
     email = models.EmailField(verbose_name=_('email'))
     email_alternative = models.EmailField(null=True, verbose_name=_('email_alternative'))

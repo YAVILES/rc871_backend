@@ -7,7 +7,7 @@ from import_export.resources import ModelResource
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
 from apps.core.models import Banner, State, City, Municipality, Mark, Model, HistoricalChangeRate, Use, Vehicle, \
-    BranchOffice, Plan, Coverage, Premium
+    BranchOffice, Plan, Coverage, Premium, Policy
 from apps.security.models import User
 
 
@@ -191,6 +191,43 @@ class VehicleResource(ModelResource):
         exclude = ('id', 'created', 'updated', 'owner_identity_card_image', 'owner_license',
                    'owner_medical_certificate', 'owner_circulation_card',)
         import_id_fields = ('license_plate',)
+
+
+class PolicyResource(ModelResource):
+    number = Field(attribute="number", column_name='Numero', readonly=True)
+    type = Field(attribute="get_type_display", column_name='Tipo', readonly=True)
+    taker = Field(
+        attribute='taker', widget=ForeignKeyWidget(User, 'full_name'), column_name='Tomador', readonly=True
+    )
+    adviser = Field(
+        attribute='adviser', widget=ForeignKeyWidget(User, 'full_name'), column_name='Asesor', readonly=True
+    )
+    created_by = Field(
+        attribute='created_by', widget=ForeignKeyWidget(User, 'full_name'), column_name='Creado Por', readonly=True
+    )
+    vehicle = Field(
+        attribute='vehicle', widget=ForeignKeyWidget(Vehicle, 'model__mark__description'), column_name='Marca Vehiculo',
+        readonly=True
+    )
+    vehicle_model = Field(
+        attribute='vehicle', widget=ForeignKeyWidget(Vehicle, 'model__description'), column_name='Modelo Vehiculo',
+        readonly=True
+    )
+    plan = Field(
+        attribute='plan', widget=ForeignKeyWidget(Plan, 'description'), column_name='Plan',
+        readonly=True
+    )
+    due_date = Field(attribute="due_date", column_name='Fecha de Vencimiento', readonly=True)
+    total_amount = Field(attribute="total_amount_display", column_name='Costo', readonly=True)
+    total_insured_amount = Field(attribute="total_insured_amount_display", column_name='Monto Asegurado', readonly=True)
+    change_factor = Field(attribute="change_factor", column_name='Factor de cambio', readonly=True)
+    status = Field(attribute="get_status_display", readonly=True)
+    created = Field(attribute="created", column_name='Fecha de creación', readonly=True)
+    action = Field(attribute="get_action_display", column_name='Acción', readonly=True)
+
+    class Meta:
+        model = Policy
+        exclude = ('id', 'updated', 'qrcode', 'file')
 
 
 class HistoricalChangeRateResource(ModelResource):

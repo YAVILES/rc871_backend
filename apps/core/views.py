@@ -27,7 +27,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from apps.core.admin import BannerResource, StateResource, CityResource, MunicipalityResource, MarkResource, \
     ModelVehicleResource, HistoricalChangeRateResource, VehicleResource, BranchOfficeResource, UseResource, \
-    PlanResource, CoverageResource, PremiumResource
+    PlanResource, CoverageResource, PremiumResource, PolicyResource
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
     Municipality, Policy, HistoricalChangeRate, file_policy_path
 from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
@@ -35,7 +35,6 @@ from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer,
     ModelDefaultSerializer, MarkDefaultSerializer, VehicleDefaultSerializer, MunicipalityDefaultSerializer, \
     CityDefaultSerializer, StateDefaultSerializer, PolicyDefaultSerializer, HistoricalChangeRateDefaultSerializer, \
     PlanWithCoverageSerializer, HomeDataSerializer
-from rc871_backend.utils.functions import format_headers_import
 
 
 class BannerFilter(filters.FilterSet):
@@ -99,7 +98,6 @@ class BannerViewSet(ModelViewSet):
                 file = request.FILES['file']
                 data_set = Dataset()
                 data_set.load(file.read())
-                data_set.headers = format_headers_import(data_set.headers)
                 result = resource.import_data(data_set, dry_run=True)  # Test the data import
             else:
                 headers = request.data['headers']
@@ -186,7 +184,6 @@ class BranchOfficeViewSet(ModelViewSet):
                 file = request.FILES['file']
                 data_set = Dataset()
                 data_set.load(file.read())
-                data_set.headers = format_headers_import(data_set.headers)
                 result = resource.import_data(data_set, dry_run=True)  # Test the data import
             else:
                 headers = request.data['headers']
@@ -274,7 +271,6 @@ class UseViewSet(ModelViewSet):
                 file = request.FILES['file']
                 data_set = Dataset()
                 data_set.load(file.read())
-                data_set.headers = format_headers_import(data_set.headers)
                 result = resource.import_data(data_set, dry_run=True)  # Test the data import
             else:
                 headers = request.data['headers']
@@ -376,7 +372,6 @@ class PlanViewSet(ModelViewSet):
                 file = request.FILES['file']
                 data_set = Dataset()
                 data_set.load(file.read())
-                data_set.headers = format_headers_import(data_set.headers)
                 result = resource.import_data(data_set, dry_run=True)  # Test the data import
             else:
                 headers = request.data['headers']
@@ -463,7 +458,6 @@ class CoverageViewSet(ModelViewSet):
                 file = request.FILES['file']
                 data_set = Dataset()
                 data_set.load(file.read())
-                data_set.headers = format_headers_import(data_set.headers)
                 result = resource.import_data(data_set, dry_run=True)  # Test the data import
             else:
                 headers = request.data['headers']
@@ -573,7 +567,6 @@ class PremiumViewSet(ModelViewSet):
                 file = request.FILES['file']
                 data_set = Dataset()
                 data_set.load(file.read())
-                data_set.headers = format_headers_import(data_set.headers)
                 result = resource.import_data(data_set, dry_run=True)  # Test the data import
             else:
                 headers = request.data['headers']
@@ -1279,6 +1272,14 @@ class PolicyViewSet(ModelViewSet):
 
         return response
 
+    @action(methods=['GET'], detail=False)
+    def export(self, request):
+        dataset = PolicyResource().export()
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=polizas.xlsx'
+        response.write(dataset.xlsx)
+        return response
+
 
 class HistoricalChangeRateFilter(filters.FilterSet):
     min_valid_from = filters.DateFilter(field_name="valid_from", lookup_expr='gte')
@@ -1320,7 +1321,6 @@ class HistoricalChangeRateViewSet(ModelViewSet):
                 file = request.FILES['file']
                 data_set = Dataset()
                 data_set.load(file.read())
-                data_set.headers = format_headers_import(data_set.headers)
                 result = resource.import_data(
                     data_set, dry_run=True)  # Test the data import
             else:

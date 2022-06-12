@@ -1,5 +1,6 @@
 import tablib
 from django.db.models.query_utils import Q
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action, authentication_classes
@@ -10,7 +11,6 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
 from tablib import Dataset
 from django_filters import rest_framework as filters
-from rc871_backend.utils.functions import format_headers_import
 from .admin import UserResource, RoleResource
 from .models import User, Workflow, Role
 from .serializers import UserDefaultSerializer, CustomTokenObtainPairSerializer, RoleDefaultSerializer, \
@@ -81,7 +81,10 @@ class UserViewSet(ModelViewSet):
     @action(methods=['GET'], detail=False)
     def export(self, request):
         dataset = UserResource().export()
-        return Response(dataset.csv, status=status.HTTP_200_OK)
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=usuarios.xlsx'
+        response.write(dataset.xlsx)
+        return response
 
     @action(methods=['POST'], detail=False)
     def _import(self, request):
@@ -93,7 +96,6 @@ class UserViewSet(ModelViewSet):
                 file = request.FILES['file']
                 data_set = Dataset()
                 data_set.load(file.read())
-                data_set.headers = format_headers_import(data_set.headers)
                 result = resource.import_data(data_set, dry_run=True)  # Test the data import
             else:
                 headers = request.data['headers']
@@ -190,7 +192,10 @@ class ClientViewSet(ModelViewSet):
     @action(methods=['GET'], detail=False)
     def export(self, request):
         dataset = UserResource().export()
-        return Response(dataset.csv, status=status.HTTP_200_OK)
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=clientes.xlsx'
+        response.write(dataset.xlsx)
+        return response
 
     @action(methods=['POST'], detail=False)
     def _import(self, request):
@@ -297,7 +302,10 @@ class RoleViewSet(ModelViewSet):
     @action(methods=['GET'], detail=False)
     def export(self, request):
         dataset = RoleResource().export()
-        return Response(dataset.csv, status=status.HTTP_200_OK)
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=roles.xlsx'
+        response.write(dataset.xlsx)
+        return response
 
     @action(methods=['POST'], detail=False)
     def _import(self, request):
@@ -309,7 +317,6 @@ class RoleViewSet(ModelViewSet):
                 file = request.FILES['file']
                 data_set = Dataset()
                 data_set.load(file.read())
-                data_set.headers = format_headers_import(data_set.headers)
                 result = resource.import_data(data_set, dry_run=True)  # Test the data import
             else:
                 headers = request.data['headers']
