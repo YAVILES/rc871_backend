@@ -83,7 +83,7 @@ class Payment(ModelBase):
         'security.User', blank=True, null=True, related_name='user_payments', verbose_name=_('user'),
         on_delete=models.PROTECT
     )
-    reference = models.CharField(verbose_name=_('reference'), max_length=255, null=False, blank=False)
+    reference = models.CharField(verbose_name=_('reference'), max_length=255, null=True, blank=True)
     coin = models.CharField(max_length=255, verbose_name=_('coin'), default=settings.CURRENCY.value)
     archive = models.FileField(verbose_name=_('archive'), upload_to=payment_archive_path, null=True)
     change_factor = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('change factor'), default=0.0)

@@ -93,6 +93,7 @@ class PaymentEditSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     number = serializers.IntegerField(read_only=True)
     archive = serializers.FileField(required=False)
+    reference = serializers.CharField(max_length=255, required=False)
     coin = serializers.CharField(required=False, default=settings.CURRENCY.value)
     bank = serializers.PrimaryKeyRelatedField(
         queryset=Bank.objects.all(),
