@@ -12,7 +12,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
-    Municipality, Policy, PolicyCoverage, HistoricalChangeRate, Location
+    Municipality, Policy, PolicyCoverage, HistoricalChangeRate, Location, Section
 from apps.payment.models import Payment
 from apps.security.models import User
 from apps.security.serializers import UserDefaultSerializer
@@ -38,6 +38,44 @@ class BannerEditSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
     class Meta:
         model = Banner
+        fields = serializers.ALL_FIELDS
+
+
+class SectionDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
+    type = serializers.CharField(max_length=10, required=False)
+    image = serializers.ImageField(required=False)
+    shape = serializers.ImageField(required=False)
+    icon = serializers.ImageField(required=False)
+    image_display = serializers.SerializerMethodField(required=False, read_only=True)
+
+    def get_image_display(self, obj: Section):
+        if obj.image and hasattr(obj.image, 'url'):
+            image_url = obj.image.url
+            return image_url
+        else:
+            return None
+
+    shape_display = serializers.SerializerMethodField(required=False, read_only=True)
+
+    def get_shape_display(self, obj: Section):
+        if obj.shape and hasattr(obj.shape, 'url'):
+            shape_url = obj.shape.url
+            return shape_url
+        else:
+            return None
+
+    icon_display = serializers.SerializerMethodField(required=False, read_only=True)
+
+    def get_icon_display(self, obj: Section):
+        if obj.icon and hasattr(obj.icon, 'url'):
+            icon_url = obj.icon.url
+            return icon_url
+        else:
+            return None
+
+    class Meta:
+        model = Section
         fields = serializers.ALL_FIELDS
 
 

@@ -87,6 +87,70 @@ class Banner(ModelBase):
         ordering = ['sequence_order']
 
 
+def section_image_path(banner: 'Section', file_name):
+    return 'img/section/image/{0}'.format(file_name)
+
+
+def section_shape_path(banner: 'Section', file_name):
+    return 'img/section/shape/{0}'.format(file_name)
+
+
+def section_icon_path(banner: 'Section', file_name):
+    return 'img/section/icon/{0}'.format(file_name)
+
+
+class Section(ModelBase):
+    BOX = 'box'
+    ABOUT = 'about'
+    SERVICE = 'service'
+    PARTNER = 'partner'
+    TYPES = (
+        (BOX, _('Caja')),
+        (ABOUT, _('Sobre')),
+        (SERVICE, _('Servicio')),
+        (PARTNER, _('Asociado')),
+    )
+    type = models.CharField(max_length=10, choices=TYPES, default=BOX, verbose_name=_('type'))
+    title = models.CharField(max_length=255, verbose_name=_('title'))
+    subtitle = models.CharField(max_length=100, verbose_name=_('subtitle'))
+    content = models.CharField(max_length=300, verbose_name=_('content'))
+    image = models.ImageField(upload_to=section_image_path, null=True, verbose_name=_('image'))
+    shape = models.ImageField(upload_to=section_shape_path, null=True, verbose_name=_('shape'))
+    icon = models.ImageField(upload_to=section_icon_path, null=True, verbose_name=_('icon'))
+    url = models.CharField(max_length=255, verbose_name=_('url'))
+    sequence_order = models.IntegerField(verbose_name='sequence order', default=1)
+    is_active = models.BooleanField(verbose_name=_('is active'), default=True)
+
+    def delete(self, using=None, keep_parents=False):
+        models.signals.pre_delete.send(sender=self.__class__,
+                                       instance=self,
+                                       using=using)
+        if self.image and hasattr(self.image, 'url'):
+            image_path = self.image.path
+            if image_path and path.exists(image_path):
+                remove(image_path)
+
+        if self.shape and hasattr(self.shape, 'url'):
+            shape_path = self.shape.path
+            if shape_path and path.exists(shape_path):
+                remove(shape_path)
+
+        if self.icon and hasattr(self.icon, 'url'):
+            icon_path = self.icon.path
+            if icon_path and path.exists(icon_path):
+                remove(icon_path)
+
+        Section.objects.filter(pk=self.id).delete()
+        models.signals.post_delete.send(sender=self.__class__,
+                                        instance=self,
+                                        using=using)
+
+    class Meta:
+        verbose_name = _('banner')
+        verbose_name_plural = _('banners')
+        ordering = ['sequence_order']
+
+
 def get_branch_office_number():
     return get_next_value('branch_office_number')
 

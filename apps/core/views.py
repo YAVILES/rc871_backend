@@ -29,12 +29,12 @@ from apps.core.admin import BannerResource, StateResource, CityResource, Municip
     ModelVehicleResource, HistoricalChangeRateResource, VehicleResource, BranchOfficeResource, UseResource, \
     PlanResource, CoverageResource, PremiumResource, PolicyResource
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
-    Municipality, Policy, HistoricalChangeRate, file_policy_path
+    Municipality, Policy, HistoricalChangeRate, file_policy_path, Section
 from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
     UseDefaultSerializer, PlanDefaultSerializer, CoverageDefaultSerializer, PremiumDefaultSerializer, \
     ModelDefaultSerializer, MarkDefaultSerializer, VehicleDefaultSerializer, MunicipalityDefaultSerializer, \
     CityDefaultSerializer, StateDefaultSerializer, PolicyDefaultSerializer, HistoricalChangeRateDefaultSerializer, \
-    PlanWithCoverageSerializer, HomeDataSerializer, PolicyForBranchOfficeSerializer
+    PlanWithCoverageSerializer, HomeDataSerializer, PolicyForBranchOfficeSerializer, SectionDefaultSerializer
 
 
 class BannerFilter(filters.FilterSet):
@@ -141,6 +141,62 @@ class BannerViewSet(ModelViewSet):
                 }, status=status.HTTP_200_OK)
         except ValueError as e:
             return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SectionFilter(filters.FilterSet):
+    class Meta:
+        model = Section
+        fields = ['title', 'subtitle', 'content', 'url', 'sequence_order', 'is_active']
+
+
+class SectionViewSet(ModelViewSet):
+    queryset = Section.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = SectionFilter
+    serializer_class = SectionDefaultSerializer
+    search_fields = ['title', 'subtitle', 'content', 'url', 'sequence_order', 'is_active']
+    permission_classes = (AllowAny,)
+    authentication_classes = []
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+    @action(methods=['GET'], detail=False)
+    def field_options(self, request):
+        field = self.request.query_params.get('field', None)
+        fields = self.request.query_params.getlist('fields', None)
+        if fields:
+            try:
+                data = {}
+                for field in fields:
+                    data[field] = []
+                    for c in Section._meta.get_field(field).choices:
+                        data[field].append({
+                            "value": c[0],
+                            "description": c[1]
+                        })
+                return Response(data, status=status.HTTP_200_OK)
+            except ValueError as e:
+                return Response(e, status=status.HTTP_400_BAD_REQUEST)
+        elif field:
+            try:
+                choices = []
+                for c in Section._meta.get_field(field).choices:
+                    choices.append({
+                        "value": c[0],
+                        "description": c[1]
+                    })
+                return Response(choices, status=status.HTTP_200_OK)
+            except ValueError as e:
+                return Response(e, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "the field parameter is mandatory"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BranchOfficeFilter(filters.FilterSet):

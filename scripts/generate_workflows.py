@@ -86,6 +86,11 @@ def run(*args):
                         'url': 'banners',
                         'icon': 'nature',
                     },
+                    {
+                        'title': 'Gestión de Secttions',
+                        'url': 'sections',
+                        'icon': 'home_repair_service_outlined',
+                    },
                 ]
             },
 
