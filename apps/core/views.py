@@ -198,6 +198,20 @@ class SectionViewSet(ModelViewSet):
         else:
             return Response({"error": "the field parameter is mandatory"}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=['DELETE', ])
+    @transaction.atomic()
+    def remove_multiple(self, request):
+        ids = request.data.get('ids', None)
+        try:
+            if ids:
+                Section.objects.filter(id__in=ids).delete()
+            else:
+                raise serializers.ValidationError(
+                    detail={'error': _("Debe seleccionar al menos una sección")})
+        except ValueError as e:
+            raise serializers.ValidationError(detail={'error': _(e.__str__())})
+        return Response(status=status.HTTP_200_OK)
+
 
 class BranchOfficeFilter(filters.FilterSet):
     class Meta:
