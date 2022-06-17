@@ -646,9 +646,9 @@ class HomeDataSerializer(serializers.ModelSerializer):
                 is_staff=False, is_superuser=False, is_adviser=False
             ).aggregate(number=Count('id')).get('number', 0)
         else:
-            return len(Policy.objects.filter(
+            return Policy.objects.filter(
                 created_by_id=obj.id, taker__is_staff=False, taker__is_superuser=False, taker__is_adviser=False
-            ).values('taker_id').distinct())
+            ).values('taker_id').distinct().aggregate(number=Count('taker_id')).get('number', 0)
 
     def get_number_pending_policies(self, obj: User):
         if obj.is_superuser:
@@ -660,17 +660,17 @@ class HomeDataSerializer(serializers.ModelSerializer):
                 Q(Q(status=Policy.PENDING_APPROVAL) | Q(status=Policy.OUTSTANDING)) & Q(created_by_id=obj.id)
             ).aggregate(number=Count('id')).get('number', 0)
 
-    def get_pending_payments(self, obj: User):
-        if obj.is_superuser:
-            return len(Policy.objects.filter(
-                Q(status=Policy.PASSED) | Q(status=Policy.EXPIRED)
-            ).values('vehicle_id').distinct())
-        else:
-            return len(Policy.objects.filter(
-                Q(Q(status=Policy.PASSED) | Q(status=Policy.EXPIRED)) & Q(created_by_id=obj.id)
-            ).values('vehicle_id').distinct())
-
     def get_number_insured_vehicles(self, obj: User):
+        if obj.is_superuser:
+            return Policy.objects.filter(
+                Q(status=Policy.PASSED) | Q(status=Policy.EXPIRED)
+            ).values('vehicle_id').distinct().aggregate(number=Count('vehicle_id')).get('number', 0)
+        else:
+            return Policy.objects.filter(
+                Q(Q(status=Policy.PASSED) | Q(status=Policy.EXPIRED)) & Q(created_by_id=obj.id)
+            ).values('vehicle_id').distinct().aggregate(number=Count('vehicle_id')).get('number', 0)
+
+    def get_pending_payments(self, obj: User):
         if obj.is_superuser:
             return Payment.objects.filter(status=Payment.PENDING).aggregate(quantity=Count('id')).get('quantity', 0)
         else:
