@@ -9,7 +9,7 @@ from rest_framework import serializers
 from sequences import get_next_value
 
 from apps.core.models import ModelBase, Policy
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from rc871_backend.settings import COINS
 from rc871_backend.utils.functions import format_coin

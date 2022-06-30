@@ -23,7 +23,7 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from six import BytesIO
 from tablib import Dataset
 from django_filters import rest_framework as filters
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.admin import BannerResource, StateResource, CityResource, MunicipalityResource, MarkResource, \
     ModelVehicleResource, HistoricalChangeRateResource, VehicleResource, BranchOfficeResource, UseResource, \

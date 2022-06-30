@@ -1,11 +1,10 @@
 import uuid
 
-from auditlog.registry import auditlog
 from django.contrib.gis.db import models as geo_models
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
 from django.utils.functional import cached_property
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import PermissionsMixin
 from sequences import get_next_value
 
@@ -128,7 +127,7 @@ class User(AbstractBaseUser, PermissionsMixin, ModelBase):
     email = models.EmailField(verbose_name=_('email'))
     email_alternative = models.EmailField(null=True, verbose_name=_('email_alternative'))
     identification_number = models.CharField(
-        max_length=50,  unique=True, verbose_name=_('identification_number'), null=True
+        max_length=50, unique=True, verbose_name=_('identification_number'), null=True
     )
     name = models.CharField(max_length=255, verbose_name=_('name'), null=True)
     last_name = models.CharField(max_length=50, verbose_name=_('last name'))
@@ -227,8 +226,8 @@ class User(AbstractBaseUser, PermissionsMixin, ModelBase):
                                        instance=self,
                                        using=using)
 
-        self.is_active =False
-        self.save(update_fields=['is_active',])
+        self.is_active = False
+        self.save(update_fields=['is_active', ])
         models.signals.post_delete.send(sender=self.__class__,
                                         instance=self,
                                         using=using)
@@ -236,11 +235,3 @@ class User(AbstractBaseUser, PermissionsMixin, ModelBase):
     class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')
-
-
-"""
-    AuditLog
-"""
-auditlog.register(User, exclude_fields=['created', 'updated'])
-auditlog.register(Role, exclude_fields=['created', 'updated'])
-auditlog.register(Workflow, exclude_fields=['created', 'updated'])

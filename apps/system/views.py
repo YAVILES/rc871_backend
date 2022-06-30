@@ -1,4 +1,3 @@
-from auditlog.models import LogEntry
 from constance.backends.database.models import Constance
 from django.conf import settings
 from django_celery_results.models import TaskResult
@@ -12,10 +11,10 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.viewsets import ModelViewSet
 
-from apps.system.serializers import ConstanceSerializer, IntervalScheduleSerializer, LogEntrySerializer, \
-    PeriodicTaskDefaultSerializer, TaskResultDefaultSerializer
+from apps.system.serializers import ConstanceSerializer, IntervalScheduleSerializer, PeriodicTaskDefaultSerializer, \
+    TaskResultDefaultSerializer
 from rc871_backend.utils.functions import get_settings
 
 
@@ -124,14 +123,6 @@ class IntervalScheduleViewSet(ModelViewSet):
                 return Response(e, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": "the field parameter is mandatory"}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class LogViewSet(ReadOnlyModelViewSet):
-    queryset = LogEntry.objects.all()
-    serializer_class = LogEntrySerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['id', 'object_repr', 'timestamp',  'changes', 'actor__email', 'actor__name', 'actor__last_name',
-                     'content_type__app_label', 'content_type__model']
 
 
 class InfoAPIView(APIView):

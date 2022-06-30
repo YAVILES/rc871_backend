@@ -83,7 +83,6 @@ INSTALLED_APPS = [
     'sequences',
     'django_ace',
     'fcm_django',
-    'auditlog',
     'import_export',
     'multiselectfield',
     'channels',

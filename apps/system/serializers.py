@@ -1,4 +1,3 @@
-from auditlog.models import LogEntry
 from constance.backends.database.models import Constance
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
@@ -20,18 +19,6 @@ class ConstanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Constance
         fields = ('id', 'key', 'value')
-
-
-class LogEntrySerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    action_display = serializers.CharField(source='get_action_display', read_only=True)
-    content_type = ContendTypeDefaultSerializer(read_only=True, required=False)
-    actor = UserDefaultSerializer()
-    changes_dict = serializers.DictField()
-    changes_str = serializers.CharField()
-
-    class Meta:
-        model = LogEntry
-        fields = serializers.ALL_FIELDS
 
 
 class PeriodicTaskDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):

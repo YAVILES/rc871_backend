@@ -12,7 +12,7 @@ from rest_framework import serializers
 from sequences import get_next_value
 from django.contrib.gis.db import models as geo_models
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 MONDAY = 0
 TUESDAY = 1

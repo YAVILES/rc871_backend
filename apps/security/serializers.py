@@ -3,7 +3,7 @@ from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_restql.mixins import DynamicFieldsMixin
 from drf_extra_fields import geo_fields
 from rest_framework import serializers
