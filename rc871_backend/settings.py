@@ -12,7 +12,13 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import os
 from datetime import timedelta
 import environ
+from django.db.models import ImageField
 from money.currency import Currency
+
+
+def logo_image_path(file_name):
+    return 'img/logo/{0}'.format(file_name)
+
 
 env = environ.Env(
     # set casting, default value
@@ -272,6 +278,13 @@ CONSTANCE_CONFIG = {
     # 'IVA': (12.00, "Impuesto al Valor Agregado (IVA)", float),
     'CHANGE_FACTOR': (0, "Factor de cambio Bs", float),
     'ADVISER_DEFAULT_ID': (None, "Asesor por Defecto", str),
+    'LOGO': (None, "Logo", ImageField(upload_to=logo_image_path, null=True)),
+    'PHONES': ("", "Telefonos", str),
+    'FAX': ("", "Fax", str),
+    'DESCRIPTION': ("", "Descripción", str),
+    'LOCATION_PRINCIPAL': ("", "Localización Principal", str),
+    'LOCATION_PRINCIPAL_GOOGLE_MAPS': ("", "Link Google Maps de Localización Principal", str),
+    'EMAIL': ("", "Email", str),
 }
 
 # CELERY STUFF

@@ -24,6 +24,7 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
 from apps.core.views import CoinAPIView
 from apps.security.views import CustomTokenObtainPairView
+from apps.system.views import ConfigurationGlobalViewSet
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -48,6 +49,7 @@ urlpatterns = [
     path('api/payment/', include('apps.payment.urls')),
 
     path('api/coin/', CoinAPIView.as_view()),
+    path('api/config/', ConfigurationGlobalViewSet.as_view()),
 
     # Tokens
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),

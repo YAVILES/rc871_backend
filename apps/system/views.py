@@ -72,6 +72,24 @@ class ConfigurationViewSet(ModelViewSet):
             return Response({"error": "el key es obligatorio"}, status=status.HTTP_404_NOT_FOUND)
 
 
+class ConfigurationGlobalViewSet(APIView):
+    permission_classes = (AllowAny,)
+    authentication_classes = []
+
+    def get(self, request, format=None):
+        key = self.request.query_params.get('key', None)
+        if key:
+            instance = Constance.objects.get(key=key)
+            data = {
+                'id': str(instance.id),
+                'key': instance.key,
+                'value': instance.value
+            }
+            return Response(data)
+        else:
+            return Response({"error": "el key es obligatorio"}, status=status.HTTP_404_NOT_FOUND)
+
+
 class IntervalScheduleViewSet(ModelViewSet):
     queryset = IntervalSchedule.objects.all()
     serializer_class = IntervalScheduleSerializer
