@@ -623,7 +623,7 @@ class PremiumViewSet(ModelViewSet):
     def export(self, request):
         dataset = PremiumResource().export()
         response = HttpResponse(content_type='application/vnd.ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=coberturas.xlsx'
+        response['Content-Disposition'] = 'attachment; filename=primas.xlsx'
         response.write(dataset.xlsx)
         return response
 
@@ -1039,6 +1039,7 @@ class StateViewSet(ModelViewSet):
     serializer_class = StateDefaultSerializer
     search_fields = ['description', 'number']
     permission_classes = (AllowAny,)
+    authentication_classes = []
 
     def paginate_queryset(self, queryset):
         """
@@ -1123,6 +1124,7 @@ class CityViewSet(ModelViewSet):
     serializer_class = CityDefaultSerializer
     search_fields = ['description', 'number', 'state__description']
     permission_classes = (AllowAny,)
+    authentication_classes = []
 
     def paginate_queryset(self, queryset):
         """
@@ -1207,6 +1209,7 @@ class MunicipalityViewSet(ModelViewSet):
     serializer_class = MunicipalityDefaultSerializer
     search_fields = ['description', 'number', 'city__state__description', 'city__description']
     permission_classes = (AllowAny,)
+    authentication_classes = []
 
     def paginate_queryset(self, queryset):
         """

@@ -108,8 +108,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'rc871_backend.middleware.RestAuthMiddleware',
-    'auditlog.middleware.AuditlogMiddleware',
+    'rc871_backend.middleware.RestAuthMiddleware'
 ]
 
 ROOT_URLCONF = 'rc871_backend.urls'
@@ -324,3 +323,5 @@ COINS = [
     Currency.USD,
     Currency.VEF
 ]
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

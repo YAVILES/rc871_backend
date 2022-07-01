@@ -80,13 +80,13 @@ class CoverageResource(ModelResource):
 
 class PremiumResource(ModelResource):
     coverage = Field(
-        attribute='coverage', widget=ForeignKeyWidget(Coverage, 'description'), column_name='Cobertura'
+        attribute='coverage', widget=ForeignKeyWidget(Coverage, 'code'), column_name='Cobertura'
     )
     use = Field(
-        attribute='use', widget=ForeignKeyWidget(Use, 'description'), column_name='Uso'
+        attribute='use', widget=ForeignKeyWidget(Use, 'code'), column_name='Uso'
     )
     plan = Field(
-        attribute='plan', widget=ForeignKeyWidget(Plan, 'description'), column_name='Plan'
+        attribute='plan', widget=ForeignKeyWidget(Plan, 'code'), column_name='Plan'
     )
     insured_amount = Field(attribute='insured_amount', column_name='Monto Asegurado')
     cost = Field(attribute='cost', column_name='Costo')

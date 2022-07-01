@@ -7,6 +7,7 @@ router.register(r'user', UserViewSet)
 router.register(r'role', RoleViewSet)
 router.register(r'workflow', WorkflowViewSet)
 router.register(r'client', ClientViewSet)
+
 urlpatterns = [
 ]
 
