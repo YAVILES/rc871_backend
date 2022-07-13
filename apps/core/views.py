@@ -408,7 +408,6 @@ class PlanViewSet(ModelViewSet):
     serializer_class = PlanDefaultSerializer
     search_fields = ['code', 'description', 'is_active']
     permission_classes = (AllowAny,)
-    authentication_classes = []
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve'] and self.request.query_params.get('use', None):

@@ -525,16 +525,8 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     total_insured_amount_display = serializers.CharField(read_only=True)
     total_insured_amount_change = serializers.DecimalField(max_digits=50, decimal_places=2, default=0.0, read_only=True)
     total_insured_amount_change_display = serializers.CharField(read_only=True)
-    created_formated = serializers.SerializerMethodField(read_only=True)
-    due_date_formated = serializers.SerializerMethodField(read_only=True)
-
-    def get_created_formated(self, obj: Policy):
-        return obj.created.strftime("%Y-%m-%d")
-
-    def get_due_date_formated(self, obj: Policy):
-        if obj.due_date:
-            return obj.due_date.strftime("%Y-%m-%d")
-        return None
+    created = serializers.DateTimeField(format="%Y-%m-%d")
+    due_date = serializers.DateTimeField(format="%Y-%m-%d")
 
     def create(self, validated_data):
         try:

@@ -142,7 +142,7 @@ class MunicipalityResource(ModelResource):
 
 class MarkResource(ModelResource):
     description = Field(attribute='description', column_name='Descripcion')
-    is_active = Field(attribute='is_active', column_name='Activo')
+    is_active = Field(attribute='is_active', column_name='Activo', default=True)
 
     class Meta:
         model = Mark
