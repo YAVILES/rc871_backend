@@ -214,8 +214,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),
-    'REFRESH_TOKEN_LIFETIME': timedelta(hours=30),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
+    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=30),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 
@@ -283,6 +283,7 @@ CONSTANCE_CONFIG = {
     'LOCATION_PRINCIPAL': ("", "Localización Principal", str),
     'LOCATION_PRINCIPAL_GOOGLE_MAPS': ("", "Link Google Maps de Localización Principal", str),
     'EMAIL': ("", "Email", str),
+    'HTML_CONTRACT': ("", "Contrato HTML", str),
 }
 
 # CELERY STUFF

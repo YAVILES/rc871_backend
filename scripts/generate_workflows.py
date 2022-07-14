@@ -91,6 +91,11 @@ def run(*args):
                         'url': 'sections',
                         'icon': 'home_repair_service_outlined',
                     },
+                    {
+                        'title': 'Contrato HTML',
+                        'url': 'contract',
+                        'icon': 'rule_outlined',
+                    },
                 ]
             },
 
