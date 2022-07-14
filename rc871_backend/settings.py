@@ -185,12 +185,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
-MEDIA_URL = env('MEDIA_URL')
-
-# MEDIA_ROOT = '/var/www/html/admin871/media/'  # os.path.join(BASE_DIR, "media")
-MEDIA_ROOT = 'C:/xampp/htdocs/admin871/media/'
+STATIC_URL = env('MEDIA_URL') + 'static/'
+STATIC_ROOT = '/var/www/html/rc871/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, "static")
+MEDIA_URL = env('MEDIA_URL') + 'media/'
+MEDIA_ROOT = '/var/www/html/rc871/media/'
+# MEDIA_ROOT = 'C:/xampp/htdocs/admin871/media/'
 
 AUTH_USER_MODEL = 'security.User'
 AUTHENTICATION_BACKENDS = ['apps.security.backends.CustomAuthenticationBackend', ]
