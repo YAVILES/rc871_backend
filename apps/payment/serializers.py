@@ -5,7 +5,7 @@ from django.db import transaction
 from django_restql.mixins import DynamicFieldsMixin
 from money.currency import CurrencyHelper, Currency
 from rest_framework import serializers, fields
-from apps.core.models import Policy
+from apps.core.models import Policy, Vehicle, Plan
 from apps.core.serializers import PolicyDefaultSerializer
 from apps.payment.models import Bank, Payment, METHODS
 from apps.security.models import User
@@ -107,6 +107,18 @@ class PaymentEditSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
+    plan = serializers.PrimaryKeyRelatedField(
+        queryset=Plan.objects.all(),
+        allow_null=True,
+        write_only=True,
+        required=False
+    )
+    vehicle = serializers.PrimaryKeyRelatedField(
+        queryset=Vehicle.objects.all(),
+        allow_null=True,
+        write_only=True,
+        required=False
+    )
     user = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         required=False,
@@ -117,6 +129,12 @@ class PaymentEditSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         try:
             with transaction.atomic():
+                plan = validated_data.pop('plan')
+                vehicle = validated_data.pop('vehicle')
+                policy = validated_data.get('policy')
+                if not policy:
+                    policy = PolicyDefaultSerializer(context=self.context).create({"plan": plan, "vehicle": vehicle})
+                    validated_data["policy"] = policy
                 change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
                 validated_data['change_factor'] = change_factor
                 payment = super(PaymentEditSerializer, self).create(validated_data)
