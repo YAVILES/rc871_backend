@@ -135,6 +135,7 @@ class PaymentEditSerializer(serializers.ModelSerializer):
                 if not policy:
                     policy = PolicyDefaultSerializer(context=self.context).create({"plan": plan, "vehicle": vehicle})
                     validated_data["policy"] = policy
+                validated_data["amount"] = policy.total_amount
                 change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
                 validated_data['change_factor'] = change_factor
                 payment = super(PaymentEditSerializer, self).create(validated_data)
@@ -144,4 +145,4 @@ class PaymentEditSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        exclude = ('created', 'updated',)
+        exclude = ('created', 'updated', 'amount',)
