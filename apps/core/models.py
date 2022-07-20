@@ -5,6 +5,7 @@ from os import remove
 from os import path
 from constance import config
 from constance.backends.database.models import Constance
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.signals import post_save
@@ -616,8 +617,9 @@ def post_save_policy(sender, instance: Policy, raw=False, **kwargs):
     created = kwargs['created']
     try:
         if not created and instance.status == Policy.PASSED and not instance.number:
+            instance.due_date = datetime.now() + relativedelta(year=1)
             instance.number = get_policy_number()
-            instance.save(update_fields=['number'])
+            instance.save(update_fields=['number', 'due_date'])
     except ValueError as e:
         raise serializers.ValidationError(detail={'error': _(e.__str__())})
 
