@@ -663,6 +663,7 @@ class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                 policy.total_amount = total_amount
                 policy.save(update_fields=['total_insured_amount', 'total_amount'])
 
+                PrePolicy.objects.filter(plan_id=plan.id, vehicle_id=vehicle.id).delete()
                 return policy
 
         except ValidationError as error:
