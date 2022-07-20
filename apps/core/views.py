@@ -27,7 +27,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.admin import BannerResource, StateResource, CityResource, MunicipalityResource, MarkResource, \
     ModelVehicleResource, HistoricalChangeRateResource, VehicleResource, BranchOfficeResource, UseResource, \
-    PlanResource, CoverageResource, PremiumResource, PolicyResource
+    PlanResource, CoverageResource, PremiumResource, PolicyResource, PrePolicyResource
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
     Municipality, Policy, HistoricalChangeRate, file_policy_path, Section, PrePolicy
 from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
