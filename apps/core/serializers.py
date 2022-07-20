@@ -12,7 +12,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
-    Municipality, Policy, PolicyCoverage, HistoricalChangeRate, Location, Section
+    Municipality, Policy, PolicyCoverage, HistoricalChangeRate, Location, Section, PrePolicy
 from apps.payment.models import Payment
 from apps.security.models import User
 from apps.security.serializers import UserDefaultSerializer
@@ -483,6 +483,63 @@ class PolicyCoverageCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PolicyCoverage
         fields = ('coverage',)
+
+
+class PrePolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    created_by = serializers.HiddenField(default=serializers.CurrentUserDefault(), write_only=True)
+    created_by_display = UserDefaultSerializer(read_only=True, source='created_by')
+    taker = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(is_staff=False),
+        required=False
+    )
+    taker_display = UserDefaultSerializer(read_only=True, source='taker')
+    vehicle = serializers.PrimaryKeyRelatedField(
+        queryset=Vehicle.objects.all()
+    )
+    vehicle_display = VehicleDefaultSerializer(read_only=True, source='vehicle')
+    plan = serializers.PrimaryKeyRelatedField(
+        queryset=Plan.objects.all(),
+    )
+    plan_display = PlanDefaultSerializer(read_only=True, source='plan')
+    items = PolicyCoverageSerializer(many=True, read_only=True)
+    coverage = serializers.PrimaryKeyRelatedField(
+        queryset=Coverage.objects.all(),
+        write_only=True,
+        many=True,
+        required=False,
+        allow_null=True
+    )
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
+    created = serializers.DateTimeField(format="%Y-%m-%d", read_only=True)
+    due_date = serializers.DateTimeField(format="%Y-%m-%d", read_only=True)
+
+    def create(self, validated_data):
+        try:
+            with transaction.atomic():
+                request = self.context.get('request')  # Se pusa si el usuario es vendedor
+                taker = validated_data.get('taker', None)
+
+                if taker is None:
+                    validated_data['taker'] = request.user
+
+                try:
+                    change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
+                except ObjectDoesNotExist:
+                    getattr(config, "CHANGE_FACTOR")
+                    change_factor = Constance.objects.get(key="CHANGE_FACTOR").value
+
+                prepolicy = PrePolicy.objects.create(
+                    change_factor=0.0 if change_factor is None else float(change_factor),
+                    **validated_data
+                )
+                return prepolicy
+
+        except ValidationError as error:
+            raise serializers.ValidationError(detail={"error": error.detail})
+
+    class Meta:
+        model = PrePolicy
+        fields = serializers.ALL_FIELDS
 
 
 class PolicyDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):

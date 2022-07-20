@@ -29,12 +29,13 @@ from apps.core.admin import BannerResource, StateResource, CityResource, Municip
     ModelVehicleResource, HistoricalChangeRateResource, VehicleResource, BranchOfficeResource, UseResource, \
     PlanResource, CoverageResource, PremiumResource, PolicyResource
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
-    Municipality, Policy, HistoricalChangeRate, file_policy_path, Section
+    Municipality, Policy, HistoricalChangeRate, file_policy_path, Section, PrePolicy
 from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
     UseDefaultSerializer, PlanDefaultSerializer, CoverageDefaultSerializer, PremiumDefaultSerializer, \
     ModelDefaultSerializer, MarkDefaultSerializer, VehicleDefaultSerializer, MunicipalityDefaultSerializer, \
     CityDefaultSerializer, StateDefaultSerializer, PolicyDefaultSerializer, HistoricalChangeRateDefaultSerializer, \
-    PlanWithCoverageSerializer, HomeDataSerializer, PolicyForBranchOfficeSerializer, SectionDefaultSerializer
+    PlanWithCoverageSerializer, HomeDataSerializer, PolicyForBranchOfficeSerializer, SectionDefaultSerializer, \
+    PrePolicyDefaultSerializer
 
 
 class BannerFilter(filters.FilterSet):
@@ -1384,6 +1385,37 @@ class PolicyViewSet(ModelViewSet):
         dataset = PolicyResource().export()
         response = HttpResponse(content_type='application/vnd.ms-excel')
         response['Content-Disposition'] = 'attachment; filename=polizas.xlsx'
+        response.write(dataset.xlsx)
+        return response
+
+
+class PrePolicyFilter(filters.FilterSet):
+    class Meta:
+        model = Policy
+        fields = ['taker__name', 'vehicle__model__mark__description', 'vehicle__model__description']
+
+
+class PrePolicyViewSet(ModelViewSet):
+    queryset = PrePolicy.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = PrePolicyFilter
+    serializer_class = PrePolicyDefaultSerializer
+    search_fields = ['taker__name', 'vehicle__model__mark__description', 'vehicle__model__description']
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+        if self.paginator is None or not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+    @action(methods=['GET'], detail=False)
+    def export(self, request):
+        dataset = PrePolicyResource().export()
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=prepolizas.xlsx'
         response.write(dataset.xlsx)
         return response
 

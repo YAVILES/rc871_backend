@@ -2,7 +2,7 @@ from rest_framework import routers
 
 from apps.core.views import BannerViewSet, BranchOfficeViewSet, UseViewSet, PlanViewSet, CoverageViewSet, \
     PremiumViewSet, MarkViewSet, ModelVehicleViewSet, VehicleViewSet, StateViewSet, CityViewSet, MunicipalityViewSet, \
-    PolicyViewSet, HistoricalChangeRateViewSet, HomeDataAPIView, SectionViewSet
+    PolicyViewSet, HistoricalChangeRateViewSet, HomeDataAPIView, SectionViewSet, PrePolicyViewSet
 
 router = routers.SimpleRouter()
 router.register(r'banner', BannerViewSet)
@@ -19,6 +19,7 @@ router.register(r'state', StateViewSet)
 router.register(r'city', CityViewSet)
 router.register(r'municipality', MunicipalityViewSet)
 router.register(r'policy', PolicyViewSet)
+router.register(r'prepolicy', PrePolicyViewSet)
 router.register(r'rate', HistoricalChangeRateViewSet)
 router.register(r'home', HomeDataAPIView, basename='home')
 

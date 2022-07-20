@@ -7,7 +7,7 @@ from import_export.resources import ModelResource
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
 from apps.core.models import Banner, State, City, Municipality, Mark, Model, HistoricalChangeRate, Use, Vehicle, \
-    BranchOffice, Plan, Coverage, Premium, Policy
+    BranchOffice, Plan, Coverage, Premium, Policy, PrePolicy
 from apps.security.models import User
 
 
@@ -228,6 +228,31 @@ class PolicyResource(ModelResource):
     class Meta:
         model = Policy
         exclude = ('id', 'updated', 'qrcode', 'file')
+
+
+class PolicyResource(ModelResource):
+    type = Field(attribute="get_type_display", column_name='Tipo', readonly=True)
+    taker = Field(
+        attribute='taker', widget=ForeignKeyWidget(User, 'full_name'), column_name='Tomador', readonly=True
+    )
+    vehicle = Field(
+        attribute='vehicle', widget=ForeignKeyWidget(Vehicle, 'model__mark__description'), column_name='Marca Vehiculo',
+        readonly=True
+    )
+    vehicle_model = Field(
+        attribute='vehicle', widget=ForeignKeyWidget(Vehicle, 'model__description'), column_name='Modelo Vehiculo',
+        readonly=True
+    )
+    plan = Field(
+        attribute='plan', widget=ForeignKeyWidget(Plan, 'description'), column_name='Plan',
+        readonly=True
+    )
+    change_factor = Field(attribute="change_factor", column_name='Factor de cambio', readonly=True)
+    created = Field(attribute="created", column_name='Fecha de creación', readonly=True)
+
+    class Meta:
+        model = PrePolicy
+        exclude = ('id', 'updated',)
 
 
 class HistoricalChangeRateResource(ModelResource):

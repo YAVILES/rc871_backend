@@ -519,6 +519,23 @@ class Policy(ModelBase):
         ordering = ['-number']
 
 
+class PrePolicy(ModelBase):
+    RCV = 0
+    TYPES = (
+        (RCV, _('RCV')),
+    )
+
+    taker = models.ForeignKey('security.User', verbose_name=_('taker'), on_delete=models.PROTECT)
+    vehicle = models.ForeignKey(Vehicle, verbose_name=_('vehicle'), on_delete=models.PROTECT)
+    type = models.SmallIntegerField(choices=TYPES, default=RCV, verbose_name=_('type'))
+    plan = models.ForeignKey(Plan, verbose_name=_('plan'), null=True, on_delete=models.PROTECT)
+    change_factor = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('change factor'), default=0.0)
+
+    class Meta:
+        verbose_name = _('pre policy')
+        verbose_name_plural = _('pre policies')
+
+
 def get_policy_coverage_number():
     return get_next_value('get_policy_coverage_number')
 
