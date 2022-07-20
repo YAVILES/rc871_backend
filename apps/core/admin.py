@@ -230,7 +230,7 @@ class PolicyResource(ModelResource):
         exclude = ('id', 'updated', 'qrcode', 'file')
 
 
-class PolicyResource(ModelResource):
+class PrePolicyResource(ModelResource):
     type = Field(attribute="get_type_display", column_name='Tipo', readonly=True)
     taker = Field(
         attribute='taker', widget=ForeignKeyWidget(User, 'full_name'), column_name='Tomador', readonly=True
