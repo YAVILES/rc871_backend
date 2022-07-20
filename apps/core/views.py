@@ -1391,7 +1391,7 @@ class PolicyViewSet(ModelViewSet):
 
 class PrePolicyFilter(filters.FilterSet):
     class Meta:
-        model = Policy
+        model = PrePolicy
         fields = ['taker__name', 'vehicle__model__mark__description', 'vehicle__model__description']
 
 
