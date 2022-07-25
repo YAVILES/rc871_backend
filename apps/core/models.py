@@ -453,11 +453,11 @@ class Policy(ModelBase):
     PAYMENT_REJECTED = 4
 
     STATUSES = (
-        (OUTSTANDING, _('pendiente de pago')),
-        (PENDING_APPROVAL, _('pendiente de aprobación')),
-        (PASSED, _('aprobado')),
-        (EXPIRED, _('vencido')),
-        (PAYMENT_REJECTED, _('pago rechazado')),
+        (OUTSTANDING, _('Pendiente de pago')),
+        (PENDING_APPROVAL, _('Pendiente de aprobación')),
+        (PASSED, _('Aprobado')),
+        (EXPIRED, _('Vencido')),
+        (PAYMENT_REJECTED, _('Pago rechazado')),
     )
 
     RCV = 0
