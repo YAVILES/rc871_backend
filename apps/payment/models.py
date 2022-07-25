@@ -114,6 +114,9 @@ def post_save_payment(sender, instance: Payment, raw=False, **kwargs):
     try:
         if instance.policy:
             policy = instance.policy
+            if instance.status == Payment.REJECTED:
+                policy.status = Policy.PAYMENT_REJECTED
+                policy.save(update_fields=['status'])
             if instance.status == Payment.PENDING:
                 policy.status = Policy.PENDING_APPROVAL
                 policy.save(update_fields=['status'])
