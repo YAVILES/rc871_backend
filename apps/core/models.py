@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+import datetime
 from decimal import Decimal
 from os import remove
 from os import path
@@ -595,7 +595,7 @@ class HistoricalChangeRate(ModelBase):
 def update_change_rate(sender, instance: HistoricalChangeRate, **kwargs):
     using = kwargs['using']
     created = kwargs['created']
-    today = datetime.today().date()
+    today = datetime.datetime.today().date()
     if instance.valid_from <= today <= instance.valid_until:
         try:
             change_factor = Constance.objects.get(key="CHANGE_FACTOR")
@@ -617,7 +617,7 @@ def post_save_policy(sender, instance: Policy, raw=False, **kwargs):
     created = kwargs['created']
     try:
         if not created and instance.status == Policy.PASSED and not instance.number:
-            instance.due_date = datetime.now() + relativedelta(year=1)
+            instance.due_date = datetime.datetime.now() + datetime.timedelta(days=365)
             instance.number = get_policy_number()
             instance.save(update_fields=['number', 'due_date'])
     except ValueError as e:
