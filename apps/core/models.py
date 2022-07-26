@@ -162,7 +162,7 @@ class BranchOffice(ModelBase):
     code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
     description = models.CharField(max_length=100, verbose_name=_('description'))
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
-    link_google_maps = models.CharField(null=True, blank=True, max_length=350, verbose_name=_('link google maps'))
+    link_google_maps = models.TextField(null=True, blank=True, verbose_name=_('link google maps'))
     geo_location = geo_models.PointField(verbose_name=_('geo location'), null=True)
 
     def __str__(self):
