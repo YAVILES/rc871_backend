@@ -161,9 +161,12 @@ class BranchOffice(ModelBase):
                                          default=get_branch_office_number)
     code = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('code'))
     description = models.CharField(max_length=100, verbose_name=_('description'))
-    is_active = models.BooleanField(verbose_name=_('is active'), default=True)
+    email = models.EmailField(null=True, verbose_name=_('email'))
+    direction = models.CharField(null=True, max_length=355, verbose_name=_('direction'))
+    telephone = models.CharField(null=True, blank=True, max_length=20, verbose_name=_('telephone'))
     link_google_maps = models.TextField(null=True, blank=True, verbose_name=_('link google maps'))
     geo_location = geo_models.PointField(verbose_name=_('geo location'), null=True)
+    is_active = models.BooleanField(verbose_name=_('is active'), default=True)
 
     def __str__(self):
         return self.description
