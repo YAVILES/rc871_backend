@@ -22,7 +22,7 @@ from drf_yasg2.views import get_schema_view
 from drf_yasg2 import openapi
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
-from apps.core.views import CoinAPIView
+from apps.core.views import CoinAPIView, BranchOfficeAPIView
 from apps.security.views import CustomTokenObtainPairView
 from apps.system.views import ConfigurationGlobalViewSet
 
@@ -44,6 +44,7 @@ urlpatterns = [
     #url(r'^otheradmin/', othersite.urls),
 
     path('api/core/', include('apps.core.urls')),
+    path('api/core/offices/', BranchOfficeAPIView.as_view()),
     path('api/security/', include('apps.security.urls')),
     path('api/system/', include('apps.system.urls')),
     path('api/payment/', include('apps.payment.urls')),

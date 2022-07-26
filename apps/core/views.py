@@ -12,7 +12,7 @@ from django.db.models import Q
 from django.http import FileResponse, HttpResponse
 from django.template.loader import render_to_string
 from django_filters.rest_framework import DjangoFilterBackend
-from money.currency import Currency, CurrencyHelper
+from money.currency import CurrencyHelper
 from rest_framework import status, serializers
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -218,6 +218,17 @@ class BranchOfficeFilter(filters.FilterSet):
     class Meta:
         model = BranchOffice
         fields = ['number', 'code', 'description', 'is_active']
+
+
+class BranchOfficeAPIView(APIView):
+    permission_classes = (AllowAny,)
+    authentication_classes = []
+
+    def get(self, request):
+        return Response(
+            BranchOfficeDefaultSerializer(BranchOffice.objects.filter(is_active=True), many=True).data,
+            status=status.HTTP_200_OK
+        )
 
 
 class BranchOfficeViewSet(ModelViewSet):
