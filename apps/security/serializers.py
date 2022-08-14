@@ -70,6 +70,7 @@ class UserCreateClientSerializer(serializers.ModelSerializer):
     roles = serializers.PrimaryKeyRelatedField(
         queryset=Role.objects.all(), many=True, required=False, write_only=True
     )
+    document_type = serializers.CharField(max_length=1, default=User.VENEZUELAN)
     username = serializers.CharField(max_length=255, required=False)
     identification_number = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
     password = serializers.CharField(max_length=255, write_only=True, required=False)
@@ -118,7 +119,7 @@ class UserCreateClientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'identification_number', 'username', 'email', 'email_alternative', 'photo', 'password', 'name',
+        fields = ('id', 'document_type', 'identification_number', 'username', 'email', 'email_alternative', 'photo', 'password', 'name',
                   'last_name', 'full_name', 'direction', 'telephone', 'phone', 'point', 'is_superuser', 'roles',
                   'info',)
 
@@ -177,9 +178,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'identification_number', 'email', 'email_alternative', 'photo', 'password', 'name',
-                  'last_name', 'full_name', 'direction', 'telephone', 'phone', 'branch_office', 'point', 'is_superuser',
-                  'roles', 'info', 'is_adviser',)
+        fields = ('id', 'username', 'document_type', 'identification_number', 'email', 'email_alternative', 'photo',
+                  'password', 'name', 'last_name', 'full_name', 'direction', 'telephone', 'phone', 'branch_office',
+                  'point', 'is_superuser', 'roles', 'info', 'is_adviser',)
 
 
 class BranchOfficeUserSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -216,7 +217,7 @@ class ClientDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'identification_number', 'email', 'email_alternative', 'password', 'name',
+        fields = ('id', 'username', 'document_type', 'identification_number', 'email', 'email_alternative', 'password', 'name',
                   'last_name', 'full_name', 'direction', 'telephone', 'phone', 'point', 'info', 'created', 'updated',
                   'is_active', 'photo',)
 
@@ -228,7 +229,7 @@ class UserSimpleSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'name', 'last_name', 'full_name', 'identification_number', 'direction',
+        fields = ('id', 'username', 'email', 'name', 'last_name', 'full_name', 'document_type', 'identification_number', 'direction',
                   'telephone', 'phone', 'is_active', 'is_superuser', 'is_staff', 'is_adviser',
                   'branch_office', 'info', 'roles', 'roles_display', 'created', 'updated', 'point',)
 

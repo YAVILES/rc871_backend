@@ -114,11 +114,26 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin, ModelBase):
+    VENEZUELAN = 'V'
+    FOREIGN = 'E'
+    LEGAL = 'J'
+
+    DOCUMENT_TYPES = (
+        (VENEZUELAN, 'Venezolano'),
+        (FOREIGN, 'Extranjero'),
+        (LEGAL, 'Jurídico'),
+        # ('G', 'Jurídico'),
+        # ('R', 'Jurídico'),
+        # ('P', 'Pasaporte'),
+    )
     code = models.CharField(max_length=255, verbose_name=_('code'), null=True, unique=True,
                             help_text="Código que se usaría para las sincronización con apps externas")
     username = models.CharField(max_length=50, verbose_name=_('username'), null=True, unique=True)
     email = models.EmailField(verbose_name=_('email'))
     email_alternative = models.EmailField(null=True, verbose_name=_('email_alternative'))
+    document_type = models.CharField(
+        max_length=10, choices=DOCUMENT_TYPES, default=VENEZUELAN, verbose_name=_('document type')
+    )
     identification_number = models.CharField(
         max_length=50, unique=True, verbose_name=_('identification_number'), null=True
     )

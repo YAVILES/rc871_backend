@@ -404,7 +404,8 @@ class PlanFilter(filters.FilterSet):
     def verified_use(self, queryset, name, value):
         if value:
             queryset = queryset.filter(
-                Q(uses__in=[value]) & Q(coverage__premium__use_id=value) & Q(coverage__premium__cost__gt=0)
+                uses__in=[value]
+                # Q(uses__in=[value]) & Q(coverage__premium__use_id=value) & Q(coverage__premium__cost__gt=0)
             ).distinct()
         return queryset
 
