@@ -186,11 +186,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = env('MEDIA_URL') + 'static/'
-STATIC_ROOT = '/var/www/html/rc871/static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, "static")
+# STATIC_ROOT = '/var/www/html/rc871/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 MEDIA_URL = env('MEDIA_URL') + 'media/'
-MEDIA_ROOT = '/var/www/html/rc871/media/'
-# MEDIA_ROOT = 'C:/xampp/htdocs/admin871/media/'
+# MEDIA_ROOT = '/var/www/html/rc871/media/'
+MEDIA_ROOT = 'C:/xampp/htdocs/admin871/media/'
 
 AUTH_USER_MODEL = 'security.User'
 AUTHENTICATION_BACKENDS = ['apps.security.backends.CustomAuthenticationBackend', ]

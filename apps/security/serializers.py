@@ -119,9 +119,9 @@ class UserCreateClientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'document_type', 'identification_number', 'username', 'email', 'email_alternative', 'photo', 'password', 'name',
-                  'last_name', 'full_name', 'direction', 'telephone', 'phone', 'point', 'is_superuser', 'roles',
-                  'info',)
+        fields = ('id', 'document_type', 'identification_number', 'username', 'email', 'email_alternative', 'photo',
+                  'password', 'name', 'last_name', 'full_name', 'direction', 'telephone', 'phone', 'point',
+                  'is_superuser', 'roles', 'info',)
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
