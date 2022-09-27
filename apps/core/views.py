@@ -403,10 +403,15 @@ class PlanFilter(filters.FilterSet):
 
     def verified_use(self, queryset, name, value):
         if value:
-            queryset = queryset.filter(
-                uses__in=[value]
-                # Q(uses__in=[value]) & Q(coverage__premium__use_id=value) & Q(coverage__premium__cost__gt=0)
-            ).distinct()
+            print(self.request.user, self.request.user.is_staff, self.request.user.is_superuser)
+            if self.request.user.is_staff or self.request.user.is_superuser:
+                queryset = queryset.filter(
+                    uses__in=[value]
+                ).distinct()
+            else:
+                queryset = queryset.filter(
+                    Q(uses__in=[value]) & Q(coverage__premium__use_id=value) & Q(coverage__premium__cost__gt=0)
+                ).distinct()
         return queryset
 
     class Meta:
