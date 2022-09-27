@@ -61,10 +61,10 @@ def banner_image_path(banner: 'Banner', file_name):
 
 class Banner(ModelBase):
     title = models.CharField(max_length=100, verbose_name=_('title'))
-    subtitle = models.CharField(max_length=100, verbose_name=_('subtitle'))
-    content = models.CharField(max_length=255, verbose_name=_('content'))
+    subtitle = models.CharField(max_length=100, verbose_name=_('subtitle'), default="")
+    content = models.CharField(max_length=255, verbose_name=_('content'), default="")
     image = models.ImageField(upload_to=banner_image_path, null=True, verbose_name=_('image'))
-    url = models.CharField(max_length=255, verbose_name=_('url'))
+    url = models.CharField(max_length=255, verbose_name=_('url'), default="")
     sequence_order = models.IntegerField(verbose_name='sequence order', default=1)
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
 
@@ -113,12 +113,12 @@ class Section(ModelBase):
     )
     type = models.CharField(max_length=10, choices=TYPES, default=BOX, verbose_name=_('type'))
     title = models.CharField(max_length=255, verbose_name=_('title'))
-    subtitle = models.CharField(max_length=100, verbose_name=_('subtitle'))
-    content = models.CharField(max_length=300, verbose_name=_('content'))
+    subtitle = models.CharField(max_length=100, verbose_name=_('subtitle'), default="")
+    content = models.CharField(max_length=300, verbose_name=_('content'), default="")
     image = models.ImageField(upload_to=section_image_path, null=True, verbose_name=_('image'))
     shape = models.ImageField(upload_to=section_shape_path, null=True, verbose_name=_('shape'))
     icon = models.ImageField(upload_to=section_icon_path, null=True, verbose_name=_('icon'))
-    url = models.CharField(max_length=255, verbose_name=_('url'))
+    url = models.CharField(max_length=255, verbose_name=_('url'), default="")
     sequence_order = models.IntegerField(verbose_name='sequence order', default=1)
     is_active = models.BooleanField(verbose_name=_('is active'), default=True)
 

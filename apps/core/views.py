@@ -881,7 +881,7 @@ class VehicleViewSet(ModelViewSet):
     filterset_class = VehicleFilter
     serializer_class = VehicleDefaultSerializer
     search_fields = ['serial_bodywork', 'serial_engine', 'license_plate', 'transmission', 'taker__username',
-                     'model__description', 'use_id', 'taker_id']
+                     'model__description', 'use__description']
     permission_classes = (AllowAny,)
 
     def get_queryset(self):
