@@ -284,6 +284,9 @@ CONSTANCE_CONFIG = {
     'LOCATION_PRINCIPAL_GOOGLE_MAPS': ("", "Link Google Maps de Localización Principal", str),
     'EMAIL': ("", "Email", str),
     'HTML_CONTRACT': ("", "Contrato HTML", str),
+    'LINK_FACEBOOK': ("", "Link Facebook", str),
+    'LINK_INSTAGRAM': ("", "Link Instagram", str),
+    'LINK_TWITTER': ("", "Link Twitter", str),
 }
 
 # CELERY STUFF
