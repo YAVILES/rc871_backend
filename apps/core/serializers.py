@@ -12,7 +12,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
-    Municipality, Policy, PolicyCoverage, HistoricalChangeRate, Location, Section, PrePolicy
+    Municipality, Policy, PolicyCoverage, HistoricalChangeRate, Location, Section, PrePolicy, Incidence
 from apps.payment.models import Payment
 from apps.security.models import User
 from apps.security.serializers import UserDefaultSerializer
@@ -751,3 +751,12 @@ class PolicyForBranchOfficeSerializer(serializers.ModelSerializer):
     class Meta:
         model = BranchOffice
         fields = ('id', 'number', 'description', 'quantity',)
+
+
+class IncidenceDefaultSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    policy_display = PolicyDefaultSerializer(read_only=True, source="policy")
+    vehicle_display = VehicleDefaultSerializer(read_only=True, source="vehicle")
+
+    class Meta:
+        model = Incidence
+        fields = serializers.ALL_FIELDS

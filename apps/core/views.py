@@ -27,15 +27,15 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.admin import BannerResource, StateResource, CityResource, MunicipalityResource, MarkResource, \
     ModelVehicleResource, HistoricalChangeRateResource, VehicleResource, BranchOfficeResource, UseResource, \
-    PlanResource, CoverageResource, PremiumResource, PolicyResource, PrePolicyResource
+    PlanResource, CoverageResource, PremiumResource, PolicyResource, PrePolicyResource, IncidenceResource
 from apps.core.models import Banner, BranchOffice, Use, Plan, Coverage, Premium, Mark, Model, Vehicle, State, City, \
-    Municipality, Policy, HistoricalChangeRate, file_policy_path, Section, PrePolicy
+    Municipality, Policy, HistoricalChangeRate, file_policy_path, Section, PrePolicy, Incidence
 from apps.core.serializers import BannerDefaultSerializer, BannerEditSerializer, BranchOfficeDefaultSerializer, \
     UseDefaultSerializer, PlanDefaultSerializer, CoverageDefaultSerializer, PremiumDefaultSerializer, \
     ModelDefaultSerializer, MarkDefaultSerializer, VehicleDefaultSerializer, MunicipalityDefaultSerializer, \
     CityDefaultSerializer, StateDefaultSerializer, PolicyDefaultSerializer, HistoricalChangeRateDefaultSerializer, \
     PlanWithCoverageSerializer, HomeDataSerializer, PolicyForBranchOfficeSerializer, SectionDefaultSerializer, \
-    PrePolicyDefaultSerializer
+    PrePolicyDefaultSerializer, IncidenceDefaultSerializer
 
 
 class BannerFilter(filters.FilterSet):
@@ -1471,6 +1471,107 @@ class HistoricalChangeRateViewSet(ModelViewSet):
     def _import(self, request):
         try:
             resource = HistoricalChangeRateResource()
+            errors = []
+            invalids = []
+            if request.FILES:
+                file = request.FILES['file']
+                data_set = Dataset()
+                data_set.load(file.read())
+                result = resource.import_data(
+                    data_set, dry_run=True)  # Test the data import
+            else:
+                headers = request.data['headers']
+                data_set = tablib.Dataset(headers=headers)
+                for d in request.data['data']:
+                    data_set.append(d)
+                result = resource.import_data(data_set, dry_run=True)
+
+            if result.has_errors() or len(result.invalid_rows) > 0:
+                for row in result.invalid_rows:
+                    invalids.append(
+                        {
+                            "row": row.number + 1,
+                            "error": row.error,
+                            "error_dict": row.error_dict,
+                            "values": row.values
+                        }
+                    )
+
+                for row in result.row_errors():
+                    err = row[1]
+                    errors.append(
+                        {
+                            "errors": [e.error.__str__() for e in err],
+                            "values": err[0].row,
+                            "row": row[0]
+                        }
+                    )
+
+                return Response({
+                    "rows_error": errors,
+                    "invalid_rows": invalids,
+                    "totals": result.totals,
+                    "total_rows": result.total_rows,
+                }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                result = resource.import_data(
+                    data_set, dry_run=False)  # Actually import now
+                return Response({
+                    "totals": result.totals,
+                    "total_rows": result.total_rows,
+                }, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
+
+class IncidenceFilter(filters.FilterSet):
+
+    class Meta:
+        model = Incidence
+        fields = ['vehicle', 'policy', 'amount', 'detail']
+
+
+class IncidenceViewSet(ModelViewSet):
+    queryset = Incidence.objects.all()
+    serializer_class = IncidenceDefaultSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = IncidenceFilter
+    search_fields = ['vehicle__place', 'policy__number', 'amount', 'detail']
+
+    def get_queryset(self):
+        queryset = self.queryset
+        user = self.request.user
+
+        if user.is_superuser:
+            return queryset
+
+        if not user.is_staff:
+            return queryset.filter(vehicle__taker_id=user.id)
+
+        return queryset
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        not_paginator = self.request.query_params.get('not_paginator', None)
+
+        if not_paginator:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+    @action(methods=['GET'], detail=False)
+    def export(self, request):
+        dataset = IncidenceResource().export()
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=incidencias.xlsx'
+        response.write(dataset.xlsx)
+        return response
+
+    @action(methods=['POST'], detail=False)
+    def _import(self, request):
+        try:
+            resource = IncidenceResource()
             errors = []
             invalids = []
             if request.FILES:

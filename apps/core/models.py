@@ -595,6 +595,13 @@ class HistoricalChangeRate(ModelBase):
         ordering = ['valid_from']
 
 
+class Incidence(ModelBase):
+    vehicle = models.ForeignKey(Vehicle, verbose_name=_('vehicle'), related_name='incidences', on_delete=models.PROTECT)
+    policy = models.ForeignKey(Policy, verbose_name=_('policy'), related_name='incidences',  on_delete=models.PROTECT)
+    amount = models.DecimalField(max_digits=50, decimal_places=2, verbose_name=_('amount'), default=0.0)
+    detail = models.TextField(verbose_name=_('detail'))
+
+
 def update_change_rate(sender, instance: HistoricalChangeRate, **kwargs):
     using = kwargs['using']
     created = kwargs['created']

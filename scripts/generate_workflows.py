@@ -73,6 +73,11 @@ def run(*args):
                         'url': 'policies',
                         'icon': 'security_update_good_outlined'
                     },
+                    {
+                        'title': 'Gestión de Incidencias',
+                        'url': 'incidences',
+                        'icon': 'security_update_good_outlined'
+                    },
                 ]
             },
 

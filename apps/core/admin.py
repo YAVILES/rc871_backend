@@ -7,7 +7,7 @@ from import_export.resources import ModelResource
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
 from apps.core.models import Banner, State, City, Municipality, Mark, Model, HistoricalChangeRate, Use, Vehicle, \
-    BranchOffice, Plan, Coverage, Premium, Policy, PrePolicy
+    BranchOffice, Plan, Coverage, Premium, Policy, PrePolicy, Incidence
 from apps.security.models import User
 
 
@@ -325,8 +325,21 @@ class HistoricalChangeRateResource(ModelResource):
         fields = ('id', 'valid_from', 'valid_until', 'rate',)
 
 
+class IncidenceResource(ModelResource):
+    vehicle = Field(
+        attribute='vehicle', widget=ForeignKeyWidget(Vehicle, 'place'), column_name='Vehiculo'
+    )
+    policy = Field(
+        attribute='policy', widget=ForeignKeyWidget(Policy, 'number'), column_name='Poliza'
+    )
+    amount = Field(attribute="amount", column_name='Monto')
+    detail = Field(attribute="detail", column_name='Detalle')
+
+    class Meta:
+        model = Incidence
+        exclude = ('id', 'updated',)
+
+
 @admin.register(Banner)
 class BrandAdmin(admin.ModelAdmin):
     list_display = ('title', 'subtitle',)
-
-
